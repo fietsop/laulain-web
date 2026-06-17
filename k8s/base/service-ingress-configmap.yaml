@@ -1,0 +1,101 @@
+# ============================================================
+#  Laulain Luxe Rentals — K8s Service
+# ============================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: laulain-service
+  namespace: laulain
+  labels:
+    app: laulain-app
+spec:
+  selector:
+    app: laulain-app
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+
+---
+# ============================================================
+#  Ingress (AWS ALB Ingress Controller)
+# ============================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: laulain-ingress
+  namespace: laulain
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/certificate-arn: <ACM_CERTIFICATE_ARN>
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/healthcheck-interval-seconds: "30"
+    alb.ingress.kubernetes.io/wafv2-acl-arn: <WAF_ACL_ARN>   # Optional: WAF protection
+spec:
+  rules:
+    - host: www.laulainluxerentals.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: laulain-service
+                port:
+                  number: 80
+
+---
+# ============================================================
+#  ConfigMap — Non-sensitive environment config
+# ============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: laulain-config
+  namespace: laulain
+data:
+  # App
+  APP_BASE_URL: "https://www.laulainluxerentals.com"
+  SPRING_PROFILES_ACTIVE: "prod"
+
+  # AWS
+  AWS_REGION: "us-east-1"
+  AWS_S3_BUCKET_NAME: "laulain-luxe-assets"
+  SES_FROM_EMAIL: "reservations@laulainluxerentals.com"
+  SES_REPLY_TO_EMAIL: "reservations@laulainluxerentals.com"
+
+  # Database (non-secret parts)
+  DB_HOST: "<RDS_ENDPOINT>"
+  DB_PORT: "5432"
+  DB_NAME: "laulain_prod"
+  DB_USER: "laulain_app"
+
+  # Redis
+  REDIS_HOST: "<REDIS_ENDPOINT>"
+  REDIS_PORT: "6379"
+
+  # Cognito (non-secret)
+  COGNITO_CLIENT_ID: "<COGNITO_CLIENT_ID>"
+  COGNITO_USER_POOL_ID: "<COGNITO_USER_POOL_ID>"
+
+  # DocuSign (non-secret)
+  DOCUSIGN_USER_ID: "<DOCUSIGN_USER_ID>"
+  DOCUSIGN_ACCOUNT_ID: "<DOCUSIGN_ACCOUNT_ID>"
+  DOCUSIGN_PRIVATE_KEY_PATH: "/app/secrets/docusign-private.key"
+
+---
+# ============================================================
+#  Namespace
+# ============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: laulain
+  labels:
+    name: laulain

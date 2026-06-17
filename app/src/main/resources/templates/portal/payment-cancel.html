@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Payment Cancelled</title></head>
+<body>
+<th:block th:fragment="main-content">
+<main>
+  <div class="max-w-xl mx-auto px-4 py-16 text-center">
+
+    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center" style="background:#f3f4f6;">
+      <svg class="w-10 h-10" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </div>
+
+    <h1 class="font-serif text-3xl font-light mb-3" style="color:#0B1628;">Payment Cancelled</h1>
+    <p class="text-sm text-gray-500 mb-8" style="font-family:'Montserrat',sans-serif;">
+      No charge was made. Your booking is still pending — you can complete payment at any time.
+    </p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+      <a th:if="${bookingId}"
+         th:href="@{/portal/dashboard}"
+         class="btn-gold px-8 py-3 rounded-sm text-xs">Return to My Bookings</a>
+      <a th:href="@{/}" class="btn-navy px-8 py-3 rounded-sm text-xs">Go Home</a>
+    </div>
+
+    <p class="text-xs mt-6" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">
+      Questions? Contact us at
+      <a th:href="'mailto:reservations@laulainluxerentals.com'"
+         style="color:#C9A84C;">reservations@laulainluxerentals.com</a>
+    </p>
+  </div>
+</main>
+</th:block>
+<th:block th:fragment="page-scripts"></th:block>
+</body>
+</html>

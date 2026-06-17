@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${pageTitle != null ? pageTitle + ' | Laulain Luxe Rentals' : 'Laulain Luxe Rentals — Premium Event Rentals'}">
+    Laulain Luxe Rentals
+  </title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Montserrat:wght@200;300;400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <!-- Tailwind CDN — config must come AFTER this loads, so we use defer pattern -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+  <!-- Brand CSS + utility overrides (pure CSS, no Tailwind dependency for layout) -->
+  <link rel="stylesheet" th:href="@{/css/luxury.css}"/>
+  <link rel="stylesheet" th:href="@{/css/utils.css}"/>
+
+  <!-- ===== ALL CRITICAL STYLES IN PLAIN CSS — no Tailwind classes for layout ===== -->
+  <style>
+    /* Reset & base */
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: #FAF7F0; font-family: 'Montserrat', system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+    a { text-decoration: none; }
+
+    /* ---- ANNOUNCEMENT BAR ---- */
+    .ann-bar {
+      background: linear-gradient(135deg, #0B1628, #152340, #0B1628);
+      border-bottom: 1px solid rgba(201,168,76,0.2);
+      padding: 7px 0;
+      text-align: center;
+    }
+    .ann-bar p {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin: 0;
+    }
+
+    /* ---- NAV ---- */
+    .site-nav {
+      background: #0B1628;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .nav-gold-line {
+      height: 2px;
+      background: linear-gradient(90deg, transparent 0%, #C9A84C 30%, #E8C96B 50%, #C9A84C 70%, transparent 100%);
+    }
+    .nav-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    /* Logo */
+    .nav-logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+    .nav-logo img {
+      height: 50px;
+      width: auto;
+      transition: filter 0.4s, transform 0.4s;
+      filter: drop-shadow(0 0 0px rgba(201,168,76,0));
+    }
+    .nav-logo:hover img {
+      filter: drop-shadow(0 0 14px rgba(201,168,76,0.55));
+      transform: scale(1.04);
+    }
+    .nav-logo-fallback {
+      display: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7A5C1E, #C9A84C, #E8C96B);
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-wordmark {
+      border-left: 1px solid rgba(201,168,76,0.3);
+      padding-left: 14px;
+    }
+    .nav-wordmark-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1.1;
+      display: block;
+    }
+    .nav-wordmark-sub {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.54rem;
+      font-weight: 300;
+      color: #C9A84C;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Desktop links */
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.8rem;
+    }
+    .nav-link {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      padding: 4px 0;
+      position: relative;
+      transition: color 0.25s;
+      white-space: nowrap;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0; right: 0;
+      height: 1px;
+      background: #C9A84C;
+      transform: scaleX(0);
+      transition: transform 0.3s;
+    }
+    .nav-link:hover { color: #E8C96B; }
+    .nav-link:hover::after { transform: scaleX(1); }
+
+    .nav-admin-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #C9A84C;
+      border: 1px solid rgba(201,168,76,0.45);
+      padding: 5px 12px;
+      border-radius: 1px;
+      text-decoration: none;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .nav-admin-badge:hover { background: rgba(201,168,76,0.1); }
+
+    .nav-signout-btn {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 0;
+      white-space: nowrap;
+    }
+    .nav-signout-btn:hover { color: rgba(255,255,255,0.7); }
+
+    .btn-nav-signin {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 7px 18px;
+      border-radius: 1px;
+      text-decoration: none;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+    .btn-nav-signin:hover { border-color: #C9A84C; color: #C9A84C; }
+
+    .btn-nav-cta {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #A07830 0%, #C9A84C 50%, #E8C96B 100%);
+      color: #0B1628;
+      padding: 9px 20px;
+      border-radius: 1px;
+      text-decoration: none;
+      box-shadow: 0 2px 12px rgba(201,168,76,0.32);
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .btn-nav-cta:hover {
+      box-shadow: 0 4px 20px rgba(201,168,76,0.55);
+      transform: translateY(-1px);
+    }
+
+    /* Hamburger */
+    .nav-hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .nav-hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: #C9A84C;
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    /* Mobile menu */
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      border-top: 1px solid rgba(201,168,76,0.15);
+      background: #0B1628;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a, .mobile-menu button {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 14px 1.5rem;
+      border-bottom: 1px solid rgba(201,168,76,0.08);
+      background: none;
+      border-left: none;
+      border-right: none;
+      border-top: none;
+      cursor: pointer;
+      text-align: left;
+      transition: color 0.2s, background 0.2s;
+    }
+    .mobile-menu a:hover, .mobile-menu button:hover {
+      color: #C9A84C;
+      background: rgba(201,168,76,0.05);
+    }
+    .mobile-menu .mobile-cta {
+      font-weight: 700;
+      background: linear-gradient(135deg, #A07830, #C9A84C) !important;
+      color: #0B1628 !important;
+      margin: 12px 1.5rem;
+      border-radius: 1px;
+      text-align: center;
+      border-bottom: none !important;
+    }
+
+    /* Responsive breakpoint */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+    @media (min-width: 901px) {
+      .mobile-menu { display: none !important; }
+    }
+
+    /* ---- FLASH MESSAGES ---- */
+    .flash-wrap { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 0; }
+    .flash-success {
+      display: flex; align-items: center; gap: 10px;
+      background: #F5E6B8; border-left: 4px solid #C9A84C; color: #5a3e00;
+      padding: 12px 16px; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; border-radius: 1px;
+    }
+    .flash-error {
+      display: flex; align-items: center; gap: 10px;
+      background: #FEE2E2; border-left: 4px solid #EF4444; color: #991B1B;
+      padding: 12px 16px; font-family: 'Montserrat', sans-serif; font-size: 0.82rem; border-radius: 1px;
+    }
+
+    /* ---- MAIN / FOOTER ---- */
+    main { flex: 1; }
+    .site-footer { background: #0B1628; color: rgba(255,255,255,0.55); }
+    .footer-gold-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent); }
+    .footer-inner { max-width: 1280px; margin: 0 auto; padding: 3.5rem 1.5rem 2.5rem; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    @media (max-width: 640px) {
+      .footer-grid { grid-template-columns: 1fr; }
+      .ann-bar { display: none; }
+    }
+    .footer-heading {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #C9A84C;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .footer-link {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      display: block;
+      margin-bottom: 8px;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: #C9A84C; }
+    .footer-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+  </style>
+
+  <th:block th:replace="${headExtra}"></th:block>
+</head>
+
+<body>
+
+<!-- ============================================================
+     ANNOUNCEMENT BAR
+     ============================================================ -->
+<div class="ann-bar">
+  <p>
+    <span style="color:#C9A84C;">✦</span>&ensp;
+    Serving the Dallas Metro Area &middot; Fate, Texas
+    &ensp;<span style="color:#C9A84C;">✦</span>&ensp;
+    Premium Event Equipment Rental
+    &ensp;<span style="color:#C9A84C;">✦</span>
+  </p>
+</div>
+
+<!-- ============================================================
+     NAVIGATION
+     ============================================================ -->
+<nav class="site-nav">
+  <div class="nav-gold-line"></div>
+  <div class="nav-inner">
+
+    <!-- LOGO -->
+    <a th:href="@{/}" class="nav-logo">
+      <img th:src="@{/images/logo.png}"
+           src="/images/logo.png"
+           alt="Laulain Luxe Rentals Logo"
+           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+      <span class="nav-logo-fallback" id="logo-fb" style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#7A5C1E,#C9A84C,#E8C96B);align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:#0B1628;">LR</span>
+      <div class="nav-wordmark">
+        <span class="nav-wordmark-title">Laulain Luxe</span>
+        <span class="nav-wordmark-sub">Rentals</span>
+      </div>
+    </a>
+
+    <!-- DESKTOP LINKS -->
+    <div class="nav-links">
+      <a th:href="@{/catalog}" class="nav-link">Collection</a>
+      <a th:href="@{/booking/new}" class="nav-link">Book Now</a>
+      <a th:href="@{/#contact}" class="nav-link">Contact</a>
+
+      <div sec:authorize="isAuthenticated()" style="display:contents;">
+        <a th:href="@{/portal/dashboard}" class="nav-link">My Bookings</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}" class="nav-admin-badge">Admin ◆</a>
+        <form th:action="@{/logout}" method="post" style="margin:0;padding:0;display:inline;">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <button type="submit" class="nav-signout-btn">Sign Out</button>
+        </form>
+      </div>
+
+      <div sec:authorize="!isAuthenticated()" style="display:contents;">
+        <a th:href="@{/login}" class="btn-nav-signin">Sign In</a>
+      </div>
+
+      <a th:href="@{/booking/new}" class="btn-nav-cta">Request a Quote</a>
+    </div>
+
+    <!-- HAMBURGER -->
+    <button class="nav-hamburger" id="hamburger-btn" aria-label="Toggle menu" onclick="toggleMobileMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a th:href="@{/catalog}">Our Collection</a>
+    <a th:href="@{/booking/new}">Book Now</a>
+    <a th:href="@{/#contact}">Contact</a>
+    <div sec:authorize="isAuthenticated()" style="display:contents;">
+      <a th:href="@{/portal/dashboard}">My Bookings</a>
+      <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}">Admin Panel</a>
+      <form th:action="@{/logout}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit">Sign Out</button>
+      </form>
+    </div>
+    <div sec:authorize="!isAuthenticated()" style="display:contents;">
+      <a th:href="@{/login}">Sign In</a>
+    </div>
+    <a th:href="@{/booking/new}" class="mobile-cta">Request a Quote</a>
+  </div>
+</nav>
+
+<!-- ============================================================
+     FLASH MESSAGES
+     ============================================================ -->
+<div th:if="${successMessage}" class="flash-wrap">
+  <div class="flash-success">
+    <svg width="16" height="16" fill="none" stroke="#A07830" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <span th:text="${successMessage}">Success</span>
+  </div>
+</div>
+<div th:if="${errorMessage}" class="flash-wrap">
+  <div class="flash-error">
+    <svg width="16" height="16" fill="none" stroke="#991B1B" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/></svg>
+    <span th:text="${errorMessage}">Error</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     MAIN CONTENT
+     ============================================================ -->
+<main>
+  <th:block th:replace="${content}"></th:block>
+</main>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="site-footer">
+  <div class="footer-gold-line"></div>
+  <div class="footer-inner">
+
+    <!-- Logo + tagline -->
+    <div style="display:flex; align-items:center; gap:16px; margin-bottom:2.5rem; padding-bottom:2rem; border-bottom:1px solid rgba(201,168,76,0.1);">
+      <img th:src="@{/images/logo.png}"
+           alt="Laulain Luxe Rentals"
+           style="height:60px; width:auto; filter:drop-shadow(0 2px 8px rgba(201,168,76,0.25)); opacity:0.92;"
+           onerror="this.style.display='none'"/>
+      <div>
+        <div style="font-family:'Cinzel',serif; font-size:1rem; font-weight:500; color:#ffffff; letter-spacing:0.1em; text-transform:uppercase; line-height:1.2;">Laulain Luxe Rentals</div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.56rem; font-weight:300; color:#C9A84C; letter-spacing:0.28em; text-transform:uppercase; margin-top:3px;">Fate, TX &middot; Dallas Metro Area</div>
+      </div>
+    </div>
+
+    <!-- 3-col links -->
+    <div class="footer-grid">
+      <div>
+        <span class="footer-heading">Quick Links</span>
+        <a th:href="@{/catalog}" class="footer-link">Our Collection</a>
+        <a th:href="@{/booking/new}" class="footer-link">Request a Quote</a>
+        <a th:href="@{/portal/dashboard}" class="footer-link">My Bookings</a>
+      </div>
+      <div>
+        <span class="footer-heading">Services</span>
+        <span class="footer-text" style="display:block;margin-bottom:6px;">Chafing Dishes</span>
+        <span class="footer-text" style="display:block;margin-bottom:6px;">Table Linens</span>
+        <span class="footer-text" style="display:block;margin-bottom:6px;">Serving Equipment</span>
+        <span class="footer-text" style="display:block;margin-bottom:6px;">Delivery &amp; Setup</span>
+      </div>
+      <div>
+        <span class="footer-heading">Contact</span>
+        <span class="footer-text" style="display:block;margin-bottom:8px;">Fate, Texas<br/>Dallas Metro Area</span>
+        <a href="mailto:reservations@laulainluxerentals.com" class="footer-link" style="word-break:break-all;">reservations@laulainluxerentals.com</a>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="footer-gold-line" style="margin-bottom:1.25rem;"></div>
+    <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px;">
+      <p style="font-family:'Montserrat',sans-serif; font-size:0.6rem; color:rgba(255,255,255,0.28); letter-spacing:0.06em; margin:0;">
+        &copy; <span th:text="${#temporals.year(#temporals.createNow())}">2024</span> Laulain Luxe Rentals. All rights reserved.
+      </p>
+      <p style="font-family:'Cormorant Garamond',serif; font-size:0.85rem; font-style:italic; color:rgba(201,168,76,0.38); margin:0;">
+        Elevating every occasion ✦
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- Mobile menu toggle script -->
+<script>
+  function toggleMobileMenu() {
+    var m = document.getElementById('mobile-menu');
+    m.classList.toggle('open');
+  }
+  // Close on outside click
+  document.addEventListener('click', function(e) {
+    var nav = document.querySelector('.site-nav');
+    if (nav && !nav.contains(e.target)) {
+      document.getElementById('mobile-menu').classList.remove('open');
+    }
+  });
+  // Tailwind config — runs after page load so tailwind is defined
+  window.addEventListener('load', function() {
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: { DEFAULT:'#C9A84C', light:'#E8C96B', pale:'#F5E6B8', dark:'#A07830', deep:'#7A5C1E' },
+              navy: { DEFAULT:'#0B1628', mid:'#152340', light:'#1E3260', soft:'#2A4580' },
+              cream: { DEFAULT:'#FAF7F0', dark:'#F0E8D8' },
+            },
+            fontFamily: {
+              serif:   ['Cormorant Garamond', 'Georgia', 'serif'],
+              sans:    ['Montserrat', 'system-ui', 'sans-serif'],
+              display: ['Cinzel', 'serif'],
+            },
+          }
+        }
+      };
+    }
+  });
+</script>
+
+<th:block th:replace="${scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Payment Successful</title></head>
+<body>
+<th:block th:fragment="main-content">
+<main>
+  <div class="max-w-xl mx-auto px-4 py-16 text-center">
+
+    <!-- Animated checkmark -->
+    <div class="w-24 h-24 rounded-full mx-auto mb-8 flex items-center justify-center"
+         style="background:linear-gradient(135deg,#C9A84C,#E8C96B); animation: pop 0.4s ease-out;">
+      <svg class="w-12 h-12" fill="none" stroke="#0B1628" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+
+    <p class="text-xs tracking-widest uppercase mb-3" style="color:#C9A84C; font-family:'Montserrat',sans-serif; letter-spacing:0.2em;">Payment Confirmed</p>
+    <h1 class="font-serif text-3xl font-light mb-3" style="color:#0B1628;">Thank You!</h1>
+    <p class="text-sm text-gray-500 mb-8" style="font-family:'Montserrat',sans-serif;">
+      Your payment has been processed successfully. A receipt has been sent to your email.
+    </p>
+
+    <!-- Payment summary card -->
+    <div th:if="${payment}" class="bg-white border rounded-sm shadow-sm p-5 mb-8 text-left" style="border-color:#e8d9b8;">
+      <div class="text-center mb-4 p-3 rounded-sm" style="background:#0B1628;">
+        <p class="text-xs uppercase tracking-widest mb-1" style="color:#C9A84C; font-family:'Montserrat',sans-serif;">Payment Reference</p>
+        <p class="font-serif text-xl text-white" th:text="${payment.bookingNumber}">LLR-0001</p>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.875rem;" style="font-family:'Montserrat',sans-serif;">
+        <div>
+          <p class="text-xs uppercase tracking-wider mb-1" style="color:#C9A84C;">Payment Type</p>
+          <p class="font-semibold" style="color:#0B1628;" th:text="${payment.typeLabel}">Deposit</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider mb-1" style="color:#C9A84C;">Amount Paid</p>
+          <p class="font-semibold text-lg" style="color:#0B1628;"
+             th:text="'$' + ${#numbers.formatDecimal(payment.amount.abs(), 1, 2)}">$0.00</p>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider mb-1" style="color:#C9A84C;">Status</p>
+          <span class="inline-block text-xs px-2 py-1 rounded-full font-semibold"
+                style="background:#d1fae5; color:#065f46; font-family:'Montserrat',sans-serif;">
+            ✓ Succeeded
+          </span>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider mb-1" style="color:#C9A84C;">Booking</p>
+          <p style="color:#0B1628;" th:text="${payment.bookingNumber}">LLR-0001</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next steps -->
+    <div class="bg-white border rounded-sm shadow-sm p-5 mb-8 text-left" style="border-color:#e8d9b8;">
+      <h3 class="font-serif text-lg mb-4" style="color:#0B1628;">What's Next?</h3>
+      <div class="space-y-3 text-sm" style="font-family:'Montserrat',sans-serif;">
+
+        <!-- Deposit paid — awaiting contract -->
+        <div th:if="${payment != null and payment.typeLabel == 'Deposit'}"
+             class="flex gap-3 p-3 rounded-sm" style="background:#F5E6B8;">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#C9A84C; color:#0B1628;">✓</span>
+          <p style="color:#A07830;"><strong>Deposit paid</strong> — your date is now reserved!</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#0B1628; color:#C9A84C;">2</span>
+          <p style="color:#374151;">We'll reach out to confirm final logistics for your event.</p>
+        </div>
+        <div class="flex gap-3">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#0B1628; color:#C9A84C;">3</span>
+          <p style="color:#374151;">You'll receive a reminder 48 hours before your event with delivery details.</p>
+        </div>
+
+        <!-- Balance paid -->
+        <div th:if="${payment != null and payment.typeLabel == 'Balance Payment'}"
+             class="flex gap-3 p-3 rounded-sm mt-2" style="background:#d1fae5;">
+          <span style="color:#065f46; font-size:1.2rem;">✓</span>
+          <p style="color:#065f46;"><strong>All paid!</strong> Your account is fully settled. Enjoy your event!</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+      <a th:href="@{/portal/dashboard}" class="btn-gold px-8 py-3 rounded-sm text-xs">My Bookings</a>
+      <a th:href="@{/catalog}" class="btn-navy px-8 py-3 rounded-sm text-xs">Browse More Items</a>
+    </div>
+  </div>
+</main>
+</th:block>
+<th:block th:fragment="page-scripts">
+<style>
+  @keyframes pop {
+    0% { transform: scale(0.5); opacity: 0; }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</th:block>
+</body>
+</html>

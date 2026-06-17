@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Booking Received</title></head>
+<body>
+
+<th:block th:fragment="main-content">
+<main>
+  <div class="max-w-2xl mx-auto px-4 py-16 text-center">
+
+    <!-- Success icon -->
+    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center"
+         style="background:linear-gradient(135deg,#C9A84C,#E8C96B);">
+      <svg class="w-10 h-10" fill="none" stroke="#0B1628" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+
+    <p class="text-xs tracking-widest uppercase mb-3" style="color:#C9A84C; font-family:'Montserrat',sans-serif; letter-spacing:0.2em;">Booking Received</p>
+    <h1 class="font-serif text-3xl md:text-4xl font-light mb-2" style="color:#0B1628;">Thank You!</h1>
+    <p class="text-sm text-gray-500 mb-8" style="font-family:'Montserrat',sans-serif;">
+      We've received your booking request and will send you a personalized quote within <strong>24 hours</strong>.
+    </p>
+
+    <!-- Booking summary card -->
+    <div class="bg-white rounded-sm border shadow-sm p-6 text-left mb-8" style="border-color:#e8d9b8;">
+      <!-- Booking number banner -->
+      <div class="text-center mb-5 p-3 rounded-sm" style="background:#0B1628;">
+        <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C; font-family:'Montserrat',sans-serif;">Your Booking Reference</p>
+        <p class="font-serif text-2xl text-white font-semibold" th:text="${booking.bookingNumber}">LLR-2024-0001</p>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; font-size:0.875rem;" style="font-family:'Montserrat',sans-serif;">
+        <div>
+          <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C;">Name</p>
+          <p style="color:#0B1628;" th:text="${booking.customerName}">Customer Name</p>
+        </div>
+        <div>
+          <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C;">Email</p>
+          <p style="color:#0B1628;" th:text="${booking.customerEmail}">email@example.com</p>
+        </div>
+        <div>
+          <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C;">Event Date</p>
+          <p class="font-semibold" style="color:#0B1628;"
+             th:text="${#temporals.format(booking.eventDate, 'MMMM d, yyyy')}">June 15, 2024</p>
+        </div>
+        <div>
+          <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C;">Event Type</p>
+          <p style="color:#0B1628;" th:text="${booking.eventType}">Wedding</p>
+        </div>
+      </div>
+
+      <!-- Items booked -->
+      <div class="mt-5 pt-5 border-t" style="border-color:#e8d9b8;">
+        <p class="text-xs tracking-widest uppercase mb-3" style="color:#C9A84C; font-family:'Montserrat',sans-serif;">Items Requested</p>
+        <div class="space-y-2">
+          <div th:each="item : ${booking.items}"
+               class="flex justify-between text-sm py-2 border-b" style="border-color:#f0e6d0;">
+            <span style="color:#374151; font-family:'Montserrat',sans-serif;">
+              <span th:text="${item.itemName}">Item</span>
+              <span class="text-xs ml-1" style="color:#9ca3af;">× <span th:text="${item.quantity}">1</span></span>
+            </span>
+            <span class="font-semibold" style="color:#0B1628; font-family:'Montserrat',sans-serif;"
+                  th:text="'$' + ${#numbers.formatDecimal(item.lineTotal, 1, 2)}">$0.00</span>
+          </div>
+        </div>
+
+        <!-- Pricing summary -->
+        <div class="mt-4 space-y-1">
+          <div class="flex justify-between text-xs" style="color:#6b7280; font-family:'Montserrat',sans-serif;">
+            <span>Tax (8.25%)</span>
+            <span th:text="'$' + ${#numbers.formatDecimal(booking.taxAmount, 1, 2)}">$0.00</span>
+          </div>
+          <div class="flex justify-between text-sm font-semibold" style="color:#0B1628; font-family:'Montserrat',sans-serif;">
+            <span>Estimated Total</span>
+            <span th:text="'$' + ${#numbers.formatDecimal(booking.totalAmount, 1, 2)}">$0.00</span>
+          </div>
+          <div class="flex justify-between text-xs p-2 rounded-sm mt-2" style="background:#F5E6B8; color:#A07830; font-family:'Montserrat',sans-serif;">
+            <span>Deposit Due (30%)</span>
+            <span class="font-semibold" th:text="'$' + ${#numbers.formatDecimal(booking.depositAmount, 1, 2)}">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What's next -->
+    <div class="bg-white rounded-sm border p-5 text-left mb-8" style="border-color:#e8d9b8;">
+      <h3 class="font-serif text-lg mb-4" style="color:#0B1628;">What Happens Next</h3>
+      <ol class="space-y-3">
+        <li class="flex gap-3 text-sm" style="font-family:'Montserrat',sans-serif;">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#C9A84C; color:#0B1628;">1</span>
+          <span style="color:#374151;">We'll review your request and send a <strong>detailed quote</strong> to <span th:text="${booking.customerEmail}">your email</span> within 24 hours.</span>
+        </li>
+        <li class="flex gap-3 text-sm" style="font-family:'Montserrat',sans-serif;">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#C9A84C; color:#0B1628;">2</span>
+          <span style="color:#374151;">Review and <strong>sign your contract</strong> digitally — takes less than 2 minutes.</span>
+        </li>
+        <li class="flex gap-3 text-sm" style="font-family:'Montserrat',sans-serif;">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#C9A84C; color:#0B1628;">3</span>
+          <span style="color:#374151;">Pay the <strong>30% deposit</strong> online to lock in your date.</span>
+        </li>
+        <li class="flex gap-3 text-sm" style="font-family:'Montserrat',sans-serif;">
+          <span class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold"
+                style="background:#C9A84C; color:#0B1628;">4</span>
+          <span style="color:#374151;">Enjoy your event! We'll handle delivery, setup (if requested), and pickup.</span>
+        </li>
+      </ol>
+    </div>
+
+    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+      <a th:href="@{/catalog}" class="btn-navy px-8 py-3 rounded-sm text-xs">Browse More Items</a>
+      <a th:href="@{/}" class="btn-gold px-8 py-3 rounded-sm text-xs">Back to Home</a>
+    </div>
+  </div>
+</main>
+</th:block>
+
+<th:block th:fragment="page-scripts"></th:block>
+</body>
+</html>

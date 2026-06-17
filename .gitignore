@@ -1,0 +1,73 @@
+# ============================================================
+#  Laulain Luxe Rentals — .gitignore
+# ============================================================
+
+# ---- Build output ----
+app/target/
+*.jar
+*.war
+*.class
+*.original
+
+# ---- Secrets & credentials — NEVER COMMIT ----
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+*.truststore
+secrets/
+*-secret.yml
+*-secret.yaml
+*-credentials.yml
+*-credentials.yaml
+
+# ---- AWS ----
+.aws/
+aws-credentials
+credentials
+
+# ---- Application config overrides ----
+application-local.yml
+application-local.yaml
+*-local.yml
+*-local.yaml
+
+# ---- Docker ----
+.docker/
+
+# ---- Kubernetes secrets ----
+k8s/secrets/
+k8s/**/*-secret.yaml
+k8s/**/*-secret.yml
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.classpath
+.project
+.settings/
+
+# ---- OS ----
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- Logs ----
+*.log
+logs/
+app.log
+
+# ---- Maven ----
+.mvn/wrapper/maven-wrapper.jar
+
+# ---- Node (if any frontend tooling added later) ----
+node_modules/
+npm-debug.log

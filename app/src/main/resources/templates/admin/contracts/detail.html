@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin :: html(adminContent=~{::admin-content}, adminScripts=~{::admin-scripts}, adminHeadExtra=~{}, headerActions=~{::header-actions})}">
+<head><title>Contract Detail</title></head>
+<body>
+
+<th:block th:fragment="header-actions">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <a th:href="@{/admin/bookings/{id}(id=${contract.bookingId})}" class="btn-admin-secondary">← Booking</a>
+    <a th:if="${contract.unsignedPdfUrl}" th:href="${contract.unsignedPdfUrl}" target="_blank" class="btn-admin-outline">Unsigned PDF ↗</a>
+    <a th:if="${contract.signedPdfUrl}" th:href="${contract.signedPdfUrl}" target="_blank" class="btn-admin-primary">Signed PDF ↗</a>
+    <form th:if="${contract.status.name() == 'PENDING_SIGNATURE'}"
+          th:action="@{/admin/contracts/{id}/void(id=${contract.id})}" method="post"
+          onsubmit="return confirm('Void this contract?')">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit" class="btn-admin-danger">Void Contract</button>
+    </form>
+  </div>
+</th:block>
+
+<th:block th:fragment="admin-content">
+
+  <!-- Status header -->
+  <div class="admin-card" style="margin-bottom:1.25rem;">
+    <div class="admin-card-body" style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#9ca3af; margin-bottom:4px;">Contract #</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.75rem; font-weight:600; color:#0B1628;" th:text="${contract.contractNumber}">LLR-C-0001</div>
+      </div>
+      <div>
+        <span style="display:inline-block; font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 14px; border-radius:20px;"
+              th:text="${contract.statusLabel}"
+              th:style="${contract.status.name()=='SIGNED'}  ? 'background:#D1FAE5;color:#065F46;'
+                       :(${contract.status.name()=='VOIDED'} ? 'background:#FEE2E2;color:#991B1B;'
+                       : 'background:#DBEAFE;color:#1E40AF;')">Status</span>
+      </div>
+      <div style="margin-left:auto;">
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px;">Customer</div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.88rem; font-weight:600; color:#0B1628;" th:text="${contract.customerName}">Name</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signed success banner -->
+  <div th:if="${contract.status.name() == 'SIGNED'}"
+       style="background:#D1FAE5; border:1px solid #6EE7B7; border-radius:2px; padding:1rem 1.25rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:12px;">
+    <svg width="20" height="20" fill="none" stroke="#065F46" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <div style="font-family:'Montserrat',sans-serif; font-size:0.82rem; font-weight:700; color:#065F46;">Contract signed.</div>
+      <div style="font-family:'Montserrat',sans-serif; font-size:0.75rem; color:#065F46; margin-top:2px;">
+        Booking was automatically confirmed and availability blocks created.
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending banner -->
+  <div th:if="${contract.status.name() == 'PENDING_SIGNATURE'}"
+       style="background:#DBEAFE; border:1px solid #93C5FD; border-radius:2px; padding:1rem 1.25rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:12px;">
+    <svg width="20" height="20" fill="none" stroke="#1E40AF" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <div style="font-family:'Montserrat',sans-serif; font-size:0.82rem; font-weight:700; color:#1E40AF;">Awaiting signature.</div>
+      <div style="font-family:'Montserrat',sans-serif; font-size:0.75rem; color:#1E40AF; margin-top:2px;">
+        A DocuSign email was sent to
+        <strong th:text="${contract.customerEmail}">email</strong>.
+        The booking confirms automatically once signed.
+      </div>
+    </div>
+  </div>
+
+  <!-- Details grid -->
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
+    <div class="admin-card">
+      <div class="admin-card-header"><span class="admin-card-title">Details</span></div>
+      <div class="admin-card-body" style="font-family:'Montserrat',sans-serif; display:flex; flex-direction:column; gap:0.75rem;">
+        <div th:each="field : ${ {
+          {'Booking',  contract.bookingNumber, '/admin/bookings/'+contract.bookingId},
+          {'Quote',    contract.quoteNumber,     '/admin/quotes/'+contract.quoteId},
+          {'Customer', contract.customerName, null},
+          {'Email',    contract.customerEmail,null},
+          {'Event Date', #temporals.format(contract.eventDate,'MMMM d, yyyy'), null}
+        } }">
+          <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:2px;" th:text="${field[0]}">Label</div>
+          <div style="font-size:0.82rem; color:#374151;">
+            <a th:if="${field[2] != null}" th:href="${field[2]}" th:text="${field[1]}"
+               style="color:#C9A84C; text-decoration:none;">Value</a>
+            <span th:unless="${field[2] != null}" th:text="${field[1] ?: '—'}">Value</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-header"><span class="admin-card-title">DocuSign &amp; PDFs</span></div>
+      <div class="admin-card-body" style="font-family:'Montserrat',sans-serif; display:flex; flex-direction:column; gap:0.75rem;">
+        <div th:if="${contract.docusignEnvelopeId}">
+          <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:2px;">DocuSign Envelope ID</div>
+          <div style="font-size:0.72rem; color:#374151; word-break:break-all;" th:text="${contract.docusignEnvelopeId}">ID</div>
+        </div>
+        <div th:if="${contract.signedAt}">
+          <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#10b981; margin-bottom:2px;">Signed At</div>
+          <div style="font-size:0.82rem; color:#374151;" th:text="${#temporals.format(contract.signedAt,'MMMM d, yyyy h:mm a')}">Date</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+          <a th:if="${contract.unsignedPdfUrl}" th:href="${contract.unsignedPdfUrl}" target="_blank"
+             class="btn-admin-outline" style="text-align:center;">Unsigned PDF ↗</a>
+          <a th:if="${contract.signedPdfUrl}" th:href="${contract.signedPdfUrl}" target="_blank"
+             class="btn-admin-primary" style="justify-content:center;">Signed PDF ↗</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</th:block>
+
+<th:block th:fragment="admin-scripts"></th:block>
+</body>
+</html>

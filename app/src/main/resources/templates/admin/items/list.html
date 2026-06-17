@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin :: html(adminContent=~{::admin-content}, adminScripts=~{::admin-scripts}, adminHeadExtra=~{}, headerActions=~{::header-actions})}">
+<head><title>Items</title></head>
+<body>
+
+<th:block th:fragment="header-actions">
+  <a th:href="@{/admin/items/new}" class="btn-admin-primary">+ Add New Item</a>
+</th:block>
+
+<th:block th:fragment="admin-content">
+
+  <!-- Stats row -->
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem;">
+    <div class="stat-card stat-accent-left" style="padding:1rem 1.25rem;">
+      <div class="stat-value" style="font-size:2rem;" th:text="${items.totalElements}">0</div>
+      <div class="stat-label">Total Items</div>
+    </div>
+    <div class="stat-card" style="padding:1rem 1.25rem; border-left:3px solid #10b981;">
+      <div class="stat-value" style="font-size:2rem; color:#10b981;"
+           th:text="${items.content.stream().filter(i -> i.active).count()}">0</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-card" style="padding:1rem 1.25rem; border-left:3px solid #C9A84C;">
+      <div class="stat-value" style="font-size:2rem;"
+           th:text="${items.content.stream().filter(i -> i.featured).count()}">0</div>
+      <div class="stat-label">Featured</div>
+    </div>
+  </div>
+
+  <!-- Items table -->
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Category</th>
+          <th style="text-align:right;">Price/Day</th>
+          <th style="text-align:center;">Qty</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Featured</th>
+          <th style="text-align:center;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="item : ${items.content}">
+          <td>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div style="width:40px; height:40px; border-radius:2px; overflow:hidden; flex-shrink:0; background:#F5E6B8; display:flex; align-items:center; justify-content:center;">
+                <img th:if="${item.primaryImageUrl != null}"
+                     th:src="${item.primaryImageUrl}" th:alt="${item.name}"
+                     style="width:100%; height:100%; object-fit:cover;"/>
+                <span th:unless="${item.primaryImageUrl != null}"
+                      style="color:#C9A84C; font-size:1rem; font-family:'Cinzel',serif;">LR</span>
+              </div>
+              <div>
+                <div style="font-weight:600; color:#0B1628; font-size:0.82rem;" th:text="${item.name}">Name</div>
+                <div style="font-size:0.65rem; color:#9ca3af;" th:text="${item.slug}">slug</div>
+              </div>
+            </div>
+          </td>
+          <td th:text="${item.category?.name}">Category</td>
+          <td style="text-align:right;">
+            <span style="font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:600; color:#0B1628;"
+                  th:text="'$' + ${#numbers.formatDecimal(item.pricePerDay,1,2)}">$0</span>
+          </td>
+          <td style="text-align:center; font-weight:600;" th:text="${item.quantityInStock}">0</td>
+          <td style="text-align:center;">
+            <span th:if="${item.active}" style="background:#D1FAE5; color:#065F46; font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;">Active</span>
+            <span th:unless="${item.active}" style="background:#FEE2E2; color:#991B1B; font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:700; padding:3px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;">Inactive</span>
+          </td>
+          <td style="text-align:center; font-size:1.1rem;" th:text="${item.featured} ? '★' : '☆'"
+              th:style="${item.featured} ? 'color:#C9A84C;' : 'color:#d1d5db;'">☆</td>
+          <td style="text-align:center;">
+            <div style="display:flex; justify-content:center; gap:6px;">
+              <a th:href="@{/admin/items/{id}(id=${item.id})}" class="btn-admin-secondary" style="padding:5px 12px;">Edit</a>
+              <a th:href="@{/catalog/{slug}(slug=${item.slug})}" target="_blank" class="btn-admin-outline" style="padding:5px 12px;">View ↗</a>
+            </div>
+          </td>
+        </tr>
+        <tr th:if="${items.isEmpty()}">
+          <td colspan="7" style="text-align:center; padding:3rem; color:#9ca3af;">
+            <div style="color:#C9A84C; font-size:1.5rem; margin-bottom:8px;">✦</div>
+            <div style="font-family:'Montserrat',sans-serif; font-size:0.82rem;">No items yet.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div th:if="${items.totalPages > 1}"
+         style="display:flex; justify-content:center; gap:8px; padding:1rem; border-top:1px solid rgba(201,168,76,0.1);">
+      <a th:if="${items.number > 0}"
+         th:href="@{/admin/items(page=${items.number - 1})}"
+         class="btn-admin-secondary" style="padding:6px 14px;">← Prev</a>
+      <a th:if="${items.number < items.totalPages - 1}"
+         th:href="@{/admin/items(page=${items.number + 1})}"
+         class="btn-admin-secondary" style="padding:6px 14px;">Next →</a>
+    </div>
+  </div>
+
+</th:block>
+
+<th:block th:fragment="admin-scripts"></th:block>
+</body>
+</html>

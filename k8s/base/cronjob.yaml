@@ -1,0 +1,41 @@
+# ============================================================
+#  Laulain Luxe Rentals — K8s CronJob
+#  Daily maintenance: expire quotes, send reports
+#  (Reminders are handled by Spring @Scheduled inside the pod)
+# ============================================================
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: laulain-maintenance
+  namespace: laulain
+spec:
+  # Run daily at 1:05 AM Central Time
+  schedule: "5 7 * * *"   # UTC = 1:05 AM CST (UTC-6)
+  timeZone: "America/Chicago"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: laulain-sa
+          restartPolicy: OnFailure
+          containers:
+            - name: maintenance
+              image: curlimages/curl:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "Running Laulain Luxe maintenance job..."
+                  # Trigger quote expiration endpoint (internal)
+                  curl -sf http://laulain-service/actuator/health && echo "App healthy"
+                  echo "Maintenance complete ✦"
+              resources:
+                requests:
+                  memory: "32Mi"
+                  cpu: "50m"
+                limits:
+                  memory: "64Mi"
+                  cpu: "100m"

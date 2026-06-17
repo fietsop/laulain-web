@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Public-facing availability calendar fragment.
+  Embedded in catalog/detail.html to let customers see which dates are available.
+
+  Usage:
+    <div th:replace="~{fragments/availability-calendar :: calendar(itemId=${item.id})}"></div>
+-->
+
+<div th:fragment="calendar(itemId)">
+
+  <!-- Calendar container -->
+  <div class="mt-8 border-t pt-8" style="border-color:#e8d9b8;">
+    <h2 class="font-serif text-2xl font-light mb-2" style="color:#0B1628;">Check Availability</h2>
+    <p class="text-xs mb-5" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">
+      Select your event date below. Green dates are available, gray dates are booked.
+    </p>
+
+    <!-- Legend -->
+    <div class="flex gap-5 mb-4">
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background:#22c55e;"></div>
+        <span class="text-xs" style="color:#374151; font-family:'Montserrat',sans-serif;">Available</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background:#f59e0b;"></div>
+        <span class="text-xs" style="color:#374151; font-family:'Montserrat',sans-serif;">Limited</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background:#ef4444;"></div>
+        <span class="text-xs" style="color:#374151; font-family:'Montserrat',sans-serif;">Fully Booked</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-3 h-3 rounded-full" style="background:#e5e7eb;"></div>
+        <span class="text-xs" style="color:#374151; font-family:'Montserrat',sans-serif;">Unavailable</span>
+      </div>
+    </div>
+
+    <!-- Public calendar -->
+    <div id="publicCalendar" style="max-width:480px;"></div>
+
+    <!-- Selected date info -->
+    <div id="selectedDateInfo" class="hidden mt-4 p-4 rounded-sm border" style="border-color:#C9A84C; background:#F5E6B8;">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold tracking-wider uppercase" style="color:#A07830; font-family:'Montserrat',sans-serif;">Selected Date</p>
+          <p class="font-serif text-lg mt-1" style="color:#0B1628;" id="selectedDateText">—</p>
+          <p class="text-xs mt-1" style="color:#6b7280; font-family:'Montserrat',sans-serif;" id="availableQtyText">—</p>
+        </div>
+        <a id="bookNowLink" href="#" class="btn-gold px-6 py-2 rounded-sm text-xs">Book This Date →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FullCalendar styles (scoped) -->
+  <style>
+    #publicCalendar .fc { font-family: 'Montserrat', sans-serif; font-size: 0.82rem; }
+    #publicCalendar .fc-toolbar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: #0B1628; }
+    #publicCalendar .fc-button-primary { background: #0B1628 !important; border-color: #0B1628 !important; font-size: 0.7rem !important; text-transform: uppercase; letter-spacing: 0.06em; }
+    #publicCalendar .fc-daygrid-day-number { font-size: 0.8rem; }
+    #publicCalendar .fc-col-header-cell-cushion { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; }
+    #publicCalendar .fc-daygrid-day.day-available { background: rgba(34,197,94,0.10) !important; cursor: pointer; }
+    #publicCalendar .fc-daygrid-day.day-partial { background: rgba(245,158,11,0.12) !important; cursor: pointer; }
+    #publicCalendar .fc-daygrid-day.day-fully-booked { background: rgba(239,68,68,0.10) !important; cursor: not-allowed; }
+    #publicCalendar .fc-daygrid-day.day-past,
+    #publicCalendar .fc-daygrid-day.day-min-advance { background: #f9fafb !important; color: #d1d5db !important; cursor: not-allowed; }
+    #publicCalendar .fc-daygrid-day.day-selected { outline: 2px solid #C9A84C !important; outline-offset: -2px; background: rgba(201,168,76,0.15) !important; }
+    #publicCalendar .fc-daygrid-dot-event { display: none !important; }
+    #publicCalendar .fc-event { display: none !important; }  /* Hide events, only show colored backgrounds */
+  </style>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+  <script th:inline="javascript">
+    const ITEM_ID = /*[[${itemId}]]*/ '';
+    let availabilityCache = {};
+    let selectedDate = null;
+    let publicCalendar;
+
+    async function loadMonthAvailability(year, month) {
+      const key = `${year}-${month}`;
+      if (availabilityCache[key]) return availabilityCache[key];
+
+      try {
+        const res = await fetch(`/api/availability/item/${ITEM_ID}/month?year=${year}&month=${month}`);
+        const data = await res.json();
+        availabilityCache[key] = data;
+        return data;
+      } catch (e) {
+        console.error('Availability fetch error:', e);
+        return null;
+      }
+    }
+
+    function applyDayStyles(calendarEl, data) {
+      if (!data || !data.days) return;
+
+      data.days.forEach(day => {
+        const dateStr = day.date;
+        const cell = calendarEl.querySelector(`[data-date="${dateStr}"]`);
+        if (!cell) return;
+
+        // Remove previous classes
+        cell.classList.remove('day-available', 'day-partial', 'day-fully-booked', 'day-past', 'day-min-advance', 'day-selected');
+
+        switch (day.status) {
+          case 'AVAILABLE':    cell.classList.add('day-available'); break;
+          case 'PARTIAL':      cell.classList.add('day-partial'); break;
+          case 'FULLY_BOOKED': cell.classList.add('day-fully-booked'); break;
+          case 'PAST':         cell.classList.add('day-past'); break;
+          case 'MIN_ADVANCE':  cell.classList.add('day-min-advance'); break;
+        }
+
+        // Re-apply selected
+        if (selectedDate && day.date === selectedDate) {
+          cell.classList.add('day-selected');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calEl = document.getElementById('publicCalendar');
+      const now = new Date();
+
+      // Pre-load current month
+      const initData = await loadMonthAvailability(now.getFullYear(), now.getMonth() + 1);
+
+      publicCalendar = new FullCalendar.Calendar(calEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: { left: 'prev', center: 'title', right: 'next' },
+        height: 'auto',
+        firstDay: 0,
+        selectable: false,
+        editable: false,
+
+        // Apply availability coloring after render
+        datesSet: async function (info) {
+          const date = new Date(info.view.currentStart);
+          date.setDate(15); // Middle of month to get correct year/month
+          const data = await loadMonthAvailability(date.getFullYear(), date.getMonth() + 1);
+          setTimeout(() => applyDayStyles(calEl, data), 50);
+        },
+
+        // Day click — select a date
+        dateClick: function (info) {
+          const dateStr = info.dateStr;
+          const month = new Date(dateStr + 'T12:00:00').getMonth() + 1;
+          const year = new Date(dateStr + 'T12:00:00').getFullYear();
+          const data = availabilityCache[`${year}-${month}`];
+
+          if (!data) return;
+          const dayData = data.days.find(d => d.date === dateStr);
+          if (!dayData) return;
+
+          // Only allow selecting available/partial days
+          if (dayData.status === 'FULLY_BOOKED' || dayData.status === 'PAST' || dayData.status === 'MIN_ADVANCE') return;
+
+          // Remove previous selection
+          calEl.querySelectorAll('.day-selected').forEach(el => el.classList.remove('day-selected'));
+
+          // Apply new selection
+          const cell = calEl.querySelector(`[data-date="${dateStr}"]`);
+          if (cell) cell.classList.add('day-selected');
+
+          selectedDate = dateStr;
+
+          // Show selected date info
+          const infoPanel = document.getElementById('selectedDateInfo');
+          infoPanel.classList.remove('hidden');
+          document.getElementById('selectedDateText').textContent =
+              new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+          document.getElementById('availableQtyText').textContent =
+              `${dayData.availableQuantity} of ${dayData.totalQuantity} unit(s) available`;
+          document.getElementById('bookNowLink').href =
+              `/booking/new?itemId=${ITEM_ID}&eventDate=${dateStr}`;
+        },
+      });
+
+      publicCalendar.render();
+      setTimeout(() => applyDayStyles(calEl, initData), 100);
+    });
+  </script>
+</div>
+
+</body>
+</html>

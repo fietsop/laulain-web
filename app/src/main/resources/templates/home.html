@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{::head-extra})}">
+<head><title>Home</title></head>
+<body>
+
+<th:block th:fragment="head-extra">
+<style>
+  /* Hero diamond texture overlay */
+  .hero-bg {
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.07) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(42,69,128,0.3) 0%, transparent 60%),
+      linear-gradient(160deg, #0B1628 0%, #0f1f3a 40%, #0B1628 100%);
+  }
+  .hero-pattern {
+    background-image:
+      repeating-linear-gradient(45deg, rgba(201,168,76,0.03) 0, rgba(201,168,76,0.03) 1px, transparent 0, transparent 50%),
+      repeating-linear-gradient(-45deg, rgba(201,168,76,0.03) 0, rgba(201,168,76,0.03) 1px, transparent 0, transparent 50%);
+    background-size: 32px 32px;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 300;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: #C9A84C;
+  }
+
+  /* Hero responsive grid */
+  @media (max-width: 768px) {
+    .hero-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+    .hero-logo-col { display: none !important; }
+    .hero-title { font-size: 2.4rem !important; }
+    .hero-trust { flex-wrap: wrap !important; gap: 10px !important; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .cat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  /* Floating logo glow */
+  .hero-logo {
+    filter: drop-shadow(0 0 40px rgba(201,168,76,0.25)) drop-shadow(0 0 80px rgba(201,168,76,0.1));
+    animation: heroLogoFloat 6s ease-in-out infinite;
+  }
+  @keyframes heroLogoFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  /* Stats counter cards */
+  .stat-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.18);
+    backdrop-filter: blur(8px);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    border-radius: 2px;
+  }
+
+  /* Category grid hover */
+  .cat-card {
+    background: #ffffff;
+    border: 1px solid rgba(201,168,76,0.18);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    border-radius: 2px;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+  }
+  .cat-card:hover {
+    background: #0B1628;
+    border-color: #C9A84C;
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(11,22,40,0.2), 0 0 0 1px #C9A84C;
+  }
+  .cat-card:hover .cat-name { color: #C9A84C; }
+  .cat-card:hover .cat-icon { transform: scale(1.15); color: #E8C96B; }
+
+  .cat-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 12px;
+    color: #C9A84C;
+    transition: transform 0.3s, color 0.3s;
+  }
+  .cat-name {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #0B1628;
+    transition: color 0.3s;
+  }
+
+  /* Process step */
+  .process-step {
+    position: relative;
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .step-number {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7A5C1E, #C9A84C, #E8C96B);
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #0B1628;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    box-shadow: 0 4px 16px rgba(201,168,76,0.35);
+  }
+
+  /* Testimonial / trust badge */
+  .trust-badge {
+    background: rgba(201,168,76,0.06);
+    border: 1px solid rgba(201,168,76,0.2);
+    padding: 1.5rem 2rem;
+    border-radius: 2px;
+    text-align: center;
+  }
+</style>
+</th:block>
+
+<th:block th:fragment="main-content">
+<main>
+
+  <!-- ═══════════════════════════════════════════════════════
+       HERO SECTION
+       ═══════════════════════════════════════════════════════ -->
+  <section class="hero-bg hero-pattern" style="position:relative; min-height:92vh; display:flex; align-items:center; overflow:hidden;">
+
+    <!-- Corner ornaments -->
+    <div style="position:absolute; top:28px; left:28px; width:70px; height:70px; border-top:1px solid rgba(201,168,76,0.3); border-left:1px solid rgba(201,168,76,0.3);"></div>
+    <div style="position:absolute; top:28px; right:28px; width:70px; height:70px; border-top:1px solid rgba(201,168,76,0.3); border-right:1px solid rgba(201,168,76,0.3);"></div>
+    <div style="position:absolute; bottom:28px; left:28px; width:70px; height:70px; border-bottom:1px solid rgba(201,168,76,0.3); border-left:1px solid rgba(201,168,76,0.3);"></div>
+    <div style="position:absolute; bottom:28px; right:28px; width:70px; height:70px; border-bottom:1px solid rgba(201,168,76,0.3); border-right:1px solid rgba(201,168,76,0.3);"></div>
+
+    <div style="max-width:1280px; margin:0 auto; padding:5rem 1.5rem; width:100%; position:relative; z-index:1;">
+      <div class="hero-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center;">
+
+        <!-- Left: Text content -->
+        <div class="animate-fade-up" style="text-align:left;">
+          <!-- Eyebrow -->
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:1.5rem;" class="animate-fade-up">
+            <div style="width:40px; height:1px; background:linear-gradient(90deg,#C9A84C,transparent);"></div>
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:500; letter-spacing:0.28em; text-transform:uppercase; color:#C9A84C;">Dallas Metro Area · Fate, Texas</span>
+          </div>
+
+          <!-- Main headline -->
+          <h1 class="hero-title animate-fade-up-delay1">
+            Elevate Your Event<br/>
+            with <em>Laulain Luxe</em>
+          </h1>
+
+          <p style="font-family:'Montserrat',sans-serif; font-size:0.95rem; font-weight:300; color:rgba(255,255,255,0.65); line-height:1.8; margin:1.5rem 0 2.5rem; max-width:420px;" class="animate-fade-up-delay2">
+            Premium chafing dishes, serving equipment, and event rentals — bringing uncompromising elegance to every table in the Dallas Metro area.
+          </p>
+
+          <!-- CTA Row -->
+          <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;" class="animate-fade-up-delay3">
+            <a th:href="@{/catalog}"
+               style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; background:linear-gradient(135deg,#7A5C1E 0%,#C9A84C 50%,#E8C96B 100%); color:#0B1628; padding:14px 32px; border-radius:1px; text-decoration:none; box-shadow:0 4px 20px rgba(201,168,76,0.4); transition:all 0.3s;"
+               onmouseover="this.style.boxShadow='0 6px 28px rgba(201,168,76,0.6)'; this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.boxShadow='0 4px 20px rgba(201,168,76,0.4)'; this.style.transform='translateY(0)'">
+              Browse Collection
+            </a>
+            <a th:href="@{/booking/new}"
+               style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#C9A84C; border:1px solid rgba(201,168,76,0.5); padding:13px 32px; border-radius:1px; text-decoration:none; transition:all 0.3s; backdrop-filter:blur(8px);"
+               onmouseover="this.style.background='rgba(201,168,76,0.1)'; this.style.borderColor='#C9A84C'"
+               onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(201,168,76,0.5)'">
+              Request a Quote
+            </a>
+          </div>
+
+          <!-- Trust indicators -->
+          <div style="display:flex; gap:2rem; margin-top:3rem; padding-top:2rem; border-top:1px solid rgba(201,168,76,0.12);" class="animate-fade-up-delay4">
+            <div th:each="feat : ${ {'Real-Time Availability','Digital Contracts','Secure Payments','48hr Reminders'} }" style="display:flex; align-items:center; gap:8px;">
+              <span style="color:#C9A84C; font-size:0.7rem;">✦</span>
+              <span style="font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.5);" th:text="${feat}">Feature</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Logo hero display -->
+        <div class="hero-logo-col" style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+          <!-- Decorative ring behind logo -->
+          <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; width:340px; height:340px; border-radius:50%; border:1px solid rgba(201,168,76,0.12); animation:pulse 4s ease-in-out infinite;"></div>
+            <div style="position:absolute; width:280px; height:280px; border-radius:50%; border:1px solid rgba(201,168,76,0.08); animation:pulse 4s 1s ease-in-out infinite;"></div>
+            <img th:src="@{/images/logo.png}"
+                 src="/images/logo.png"
+                 alt="Laulain Luxe Rentals"
+                 class="hero-logo"
+                 style="height:220px; width:auto; position:relative; z-index:1;"
+                 onerror="this.style.display='none'"/>
+          </div>
+
+          <!-- Tagline beneath logo -->
+          <div style="margin-top:2rem; text-align:center;">
+            <div style="height:1px; width:80px; background:linear-gradient(90deg,transparent,#C9A84C,transparent); margin:0 auto 1rem;"></div>
+            <p style="font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-style:italic; font-weight:300; color:rgba(255,255,255,0.55); letter-spacing:0.03em;">
+              Premium Event Equipment<br/>
+              <span style="color:#C9A84C;">Fate, Texas</span>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Scroll indicator -->
+    <div style="position:absolute; bottom:32px; left:50%; transform:translateX(-50%); text-align:center; animation:bounce 2s ease-in-out infinite;">
+      <span style="font-family:'Montserrat',sans-serif; font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase; color:rgba(255,255,255,0.35); display:block; margin-bottom:8px;">Scroll</span>
+      <div style="width:1px; height:32px; background:linear-gradient(to bottom,rgba(201,168,76,0.5),transparent); margin:0 auto;"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       STATS BAR
+       ═══════════════════════════════════════════════════════ -->
+  <div style="background:#0B1628; border-top:1px solid rgba(201,168,76,0.12); border-bottom:1px solid rgba(201,168,76,0.12);">
+    <div style="max-width:1280px; margin:0 auto; padding:0 1.5rem;">
+      <div class="stats-grid" style="display:grid; grid-template-columns:repeat(4,1fr); border-left:1px solid rgba(201,168,76,0.1);">
+        <div th:each="stat : ${ {{'500+','Events Served'},{'100%','Satisfaction'},{'48hr','Response Time'},{'Dallas','Metro Area'}} }"
+             style="padding:1.5rem 2rem; border-right:1px solid rgba(201,168,76,0.1); text-align:center;">
+          <div style="font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:500; color:#C9A84C; line-height:1;" th:text="${stat[0]}">0</div>
+          <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-top:6px;" th:text="${stat[1]}">Label</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       CATEGORIES
+       ═══════════════════════════════════════════════════════ -->
+  <section style="background:#FAF7F0; padding:6rem 0;">
+    <div style="max-width:1280px; margin:0 auto; padding:0 1.5rem;">
+
+      <!-- Section header -->
+      <div style="text-align:center; margin-bottom:3.5rem;">
+        <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:500; letter-spacing:0.28em; text-transform:uppercase; color:#C9A84C; display:block; margin-bottom:12px;">Browse By Category</span>
+        <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem); font-weight:300; color:#0B1628;">
+          Our Rental Collection
+        </h2>
+        <div style="height:1px; width:60px; background:linear-gradient(90deg,transparent,#C9A84C,transparent); margin:1.25rem auto 0;"></div>
+      </div>
+
+      <!-- Category grid -->
+      <div class="cat-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px;">
+        <a th:each="cat : ${categories}"
+           th:href="@{/catalog(categoryId=${cat.id})}"
+           class="cat-card">
+          <span class="cat-icon">✦</span>
+          <span class="cat-name" th:text="${cat.name}">Category</span>
+          <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; color:#9ca3af; display:block; margin-top:6px;" th:text="${cat.description != null ? cat.description.substring(0, [#if cat.description.length() > 45]45[#else]cat.description.length()[/#if]) + '...' : ''}"></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       FEATURED ITEMS
+       ═══════════════════════════════════════════════════════ -->
+  <section th:if="${!featuredItems.isEmpty()}" style="background:#ffffff; padding:6rem 0;">
+    <div style="max-width:1280px; margin:0 auto; padding:0 1.5rem;">
+
+      <div style="display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; margin-bottom:3rem; gap:1rem;">
+        <div>
+          <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:500; letter-spacing:0.28em; text-transform:uppercase; color:#C9A84C; display:block; margin-bottom:10px;">Most Popular</span>
+          <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem); font-weight:300; color:#0B1628; line-height:1.1;">
+            Featured Rentals
+          </h2>
+        </div>
+        <a th:href="@{/catalog}"
+           style="font-family:'Montserrat',sans-serif; font-size:0.65rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#0B1628; text-decoration:none; border-bottom:1px solid #C9A84C; padding-bottom:2px; transition:color 0.2s;"
+           onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#0B1628'">
+          View Full Collection →
+        </a>
+      </div>
+
+      <!-- Items grid -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:24px;">
+        <div th:each="item : ${featuredItems}"
+             class="card-luxury item-card">
+
+          <!-- Image -->
+          <a th:href="@{/catalog/{slug}(slug=${item.slug})}" class="card-image" style="display:block; position:relative; overflow:hidden; padding-top:72%; background:#F0E8D8;">
+            <img th:if="${item.primaryImageUrl != null}"
+                 th:src="${item.primaryImageUrl}" th:alt="${item.name}"
+                 style="position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform 0.6s cubic-bezier(0.4,0,0.2,1);"
+                 onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'"/>
+            <div th:unless="${item.primaryImageUrl != null}"
+                 style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#F5E6B8,#e8d9b8);">
+              <span style="font-family:'Cinzel',serif; font-size:2.5rem; color:#C9A84C; opacity:0.6;">LR</span>
+            </div>
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(11,22,40,0.4) 0%, transparent 50%); opacity:0; transition:opacity 0.4s;" class="overlay"></div>
+            <div th:if="${item.featured}"
+                 style="position:absolute; top:12px; left:12px; background:linear-gradient(135deg,#7A5C1E,#C9A84C); color:#0B1628; font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; padding:4px 10px; border-radius:1px;">
+              Featured
+            </div>
+          </a>
+
+          <!-- Info -->
+          <div style="padding:1.25rem 1.25rem 1.5rem;">
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#C9A84C; display:block; margin-bottom:6px;"
+                  th:text="${item.categoryName}">Category</span>
+            <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; color:#0B1628; line-height:1.2; margin-bottom:14px;">
+              <a th:href="@{/catalog/{slug}(slug=${item.slug})}" th:text="${item.name}"
+                 style="text-decoration:none; color:inherit; transition:color 0.2s;"
+                 onmouseover="this.style.color='#C9A84C'" onmouseout="this.style.color='#0B1628'">Item</a>
+            </h3>
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <div>
+                <span style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:500; color:#0B1628;"
+                      th:text="'$' + ${#numbers.formatDecimal(item.pricePerDay,1,2)}">$0</span>
+                <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; color:#9ca3af; margin-left:4px;">/ day</span>
+              </div>
+              <a th:href="@{/catalog/{slug}(slug=${item.slug})}"
+                 style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; background:linear-gradient(135deg,#A07830,#C9A84C); color:#0B1628; padding:7px 16px; border-radius:1px; text-decoration:none; transition:all 0.25s; box-shadow:0 2px 8px rgba(201,168,76,0.25);"
+                 onmouseover="this.style.boxShadow='0 4px 14px rgba(201,168,76,0.45)'; this.style.transform='translateY(-1px)'"
+                 onmouseout="this.style.boxShadow='0 2px 8px rgba(201,168,76,0.25)'; this.style.transform='translateY(0)'">
+                Details
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       HOW IT WORKS
+       ═══════════════════════════════════════════════════════ -->
+  <section style="background:#FAF7F0; padding:6rem 0;">
+    <div style="max-width:1280px; margin:0 auto; padding:0 1.5rem;">
+      <div style="text-align:center; margin-bottom:3.5rem;">
+        <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:500; letter-spacing:0.28em; text-transform:uppercase; color:#C9A84C; display:block; margin-bottom:12px;">Simple Process</span>
+        <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,4vw,3rem); font-weight:300; color:#0B1628;">
+          How It Works
+        </h2>
+        <div style="height:1px; width:60px; background:linear-gradient(90deg,transparent,#C9A84C,transparent); margin:1.25rem auto 0;"></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2rem; position:relative;">
+
+        <!-- Connector line (desktop) -->
+        <div style="position:absolute; top:24px; left:12%; right:12%; height:1px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.3),rgba(201,168,76,0.3),rgba(201,168,76,0.3),transparent); z-index:0;"></div>
+
+        <div th:each="step,s : ${ {{'Browse & Select','Explore our full collection and choose the perfect equipment for your event.'},{'Check Availability','Pick your event date and get instant real-time availability confirmation.'},{'Receive Your Quote','We send a personalized PDF quote within 24 hours — sign digitally.'},{'Confirm & Relax','Pay a 30% deposit to lock your date. We handle the rest.'}} }"
+             style="text-align:center; padding:1rem; position:relative; z-index:1;">
+          <div class="step-number" style="margin-bottom:1.25rem;" th:text="${s.index + 1}">1</div>
+          <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; color:#0B1628; margin-bottom:10px;" th:text="${step[0]}">Step</h3>
+          <p style="font-family:'Montserrat',sans-serif; font-size:0.76rem; color:#6b7280; line-height:1.7;" th:text="${step[1]}">Description</p>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-top:3rem;">
+        <a th:href="@{/booking/new}"
+           style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; background:linear-gradient(135deg,#7A5C1E,#C9A84C,#E8C96B); color:#0B1628; padding:14px 40px; border-radius:1px; text-decoration:none; box-shadow:0 4px 20px rgba(201,168,76,0.35); display:inline-block; transition:all 0.3s;"
+           onmouseover="this.style.boxShadow='0 6px 28px rgba(201,168,76,0.55)'; this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.boxShadow='0 4px 20px rgba(201,168,76,0.35)'; this.style.transform='translateY(0)'">
+          Start Your Booking
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════
+       CTA SECTION
+       ═══════════════════════════════════════════════════════ -->
+  <section id="contact" style="background:#0B1628; padding:6rem 0; position:relative; overflow:hidden;">
+    <!-- Background texture -->
+    <div style="position:absolute; inset:0; background-image:repeating-linear-gradient(45deg,rgba(201,168,76,0.02) 0,rgba(201,168,76,0.02) 1px,transparent 0,transparent 50%),repeating-linear-gradient(-45deg,rgba(201,168,76,0.02) 0,rgba(201,168,76,0.02) 1px,transparent 0,transparent 50%); background-size:28px 28px; pointer-events:none;"></div>
+    <!-- Radial glow -->
+    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:600px; height:600px; background:radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%); pointer-events:none;"></div>
+
+    <div style="max-width:720px; margin:0 auto; padding:0 1.5rem; text-align:center; position:relative; z-index:1;">
+
+      <!-- Logo in CTA -->
+      <img th:src="@{/images/logo.png}" alt="Laulain Luxe Rentals"
+           style="height:80px; width:auto; margin:0 auto 1.5rem; display:block; filter:drop-shadow(0 0 20px rgba(201,168,76,0.3));"
+           onerror="this.style.display='none'"/>
+
+      <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:500; letter-spacing:0.28em; text-transform:uppercase; color:#C9A84C; display:block; margin-bottom:16px;">Ready to Elevate Your Event?</span>
+      <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(2rem,5vw,3.5rem); font-weight:300; color:#ffffff; line-height:1.1; margin-bottom:1.5rem;">
+        Let's Create Something<br/><em style="color:#C9A84C;">Unforgettable</em>
+      </h2>
+      <p style="font-family:'Montserrat',sans-serif; font-size:0.88rem; font-weight:300; color:rgba(255,255,255,0.58); line-height:1.8; margin-bottom:2.5rem; max-width:480px; margin-left:auto; margin-right:auto;">
+        Weddings, corporate events, birthdays, and more. Serving the entire Dallas Metro area with delivery and setup available.
+      </p>
+
+      <div style="display:flex; flex-wrap:wrap; gap:14px; justify-content:center;">
+        <a th:href="@{/booking/new}"
+           style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; background:linear-gradient(135deg,#7A5C1E,#C9A84C,#E8C96B); color:#0B1628; padding:14px 36px; border-radius:1px; text-decoration:none; box-shadow:0 4px 20px rgba(201,168,76,0.4); transition:all 0.3s;"
+           onmouseover="this.style.boxShadow='0 6px 28px rgba(201,168,76,0.6)'; this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.boxShadow='0 4px 20px rgba(201,168,76,0.4)'; this.style.transform='translateY(0)'">
+          Request a Quote
+        </a>
+        <a href="mailto:reservations@laulainluxerentals.com"
+           style="font-family:'Montserrat',sans-serif; font-size:0.68rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:#C9A84C; border:1px solid rgba(201,168,76,0.5); padding:13px 36px; border-radius:1px; text-decoration:none; transition:all 0.3s; backdrop-filter:blur(8px);"
+           onmouseover="this.style.background='rgba(201,168,76,0.08)'; this.style.borderColor='#C9A84C'"
+           onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(201,168,76,0.5)'">
+          Email Us
+        </a>
+      </div>
+
+      <!-- Trust line -->
+      <div style="margin-top:3rem; display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center; opacity:0.5;">
+        <span th:each="t : ${ {'Digital Contracts','Secure Stripe Payments','Real-Time Calendar','48hr Reminders'} }"
+              style="font-family:'Montserrat',sans-serif; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:#C9A84C; display:flex; align-items:center; gap:6px;">
+          <span style="font-size:0.5rem;">✦</span>
+          <span th:text="${t}">Feature</span>
+        </span>
+      </div>
+    </div>
+  </section>
+
+</main>
+</th:block>
+
+<th:block th:fragment="page-scripts">
+<style>
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.02); }
+  }
+</style>
+</th:block>
+</body>
+</html>

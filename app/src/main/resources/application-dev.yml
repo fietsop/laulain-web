@@ -1,0 +1,33 @@
+# ============================================================
+#  Laulain Luxe Rentals — DEV Profile
+# ============================================================
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:laulain_dev}
+    username: ${DB_USER:laulain_user}
+    password: ${DB_PASSWORD:laulain_dev_pass}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+
+  thymeleaf:
+    cache: false
+
+app:
+  base-url: http://localhost:8080
+
+logging:
+  level:
+    com.laulain: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+
+server:
+  port: 8081

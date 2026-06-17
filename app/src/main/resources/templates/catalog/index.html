@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Catalog</title></head>
+<body>
+
+<th:block th:fragment="main-content">
+<main>
+  <!-- Page Header -->
+  <div style="background:linear-gradient(135deg,#0B1628,#1E3260); padding:3rem 0;">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <p class="text-xs tracking-widest uppercase mb-2" style="color:#C9A84C; font-family:'Montserrat',sans-serif; letter-spacing:0.2em;">
+        Dallas Metro Area
+      </p>
+      <h1 class="font-serif text-white text-4xl md:text-5xl font-light">Our Rental Collection</h1>
+      <div class="mt-3 mx-auto w-16 h-px" style="background:linear-gradient(90deg,transparent,#C9A84C,transparent);"></div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    <div style="display:flex; flex-wrap:wrap; gap:2rem;">
+
+      <!-- ===== SIDEBAR FILTERS ===== -->
+      <aside style="width:250px; flex-shrink:0; min-width:200px;">
+        <div class="bg-white shadow-sm rounded-sm border p-6" style="border-color:#e8d9b8;">
+
+          <!-- Search -->
+          <form th:action="@{/catalog}" method="get" id="filterForm">
+            <div class="mb-5">
+              <label class="block text-xs font-semibold tracking-widest uppercase mb-2" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Search</label>
+              <input type="text" name="search" th:value="${filter.search}"
+                     placeholder="Chafing dish, linen…"
+                     class="w-full border px-3 py-2 text-sm focus:outline-none focus:ring-1 rounded-sm"
+                     style="border-color:#C9A84C; font-family:'Montserrat',sans-serif; focus-ring-color:#C9A84C;"/>
+            </div>
+
+            <!-- Category Filter -->
+            <div class="mb-5">
+              <label class="block text-xs font-semibold tracking-widest uppercase mb-3" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Category</label>
+              <div class="space-y-2">
+                <label class="flex items-center cursor-pointer group">
+                  <input type="radio" name="categoryId" value=""
+                         th:checked="${filter.categoryId == null}"
+                         class="mr-2 text-gold-DEFAULT"
+                         onchange="this.form.submit()"/>
+                  <span class="text-sm group-hover:text-gold-DEFAULT transition-colors" style="font-family:'Montserrat',sans-serif; color:#374151;">All Items</span>
+                </label>
+                <label th:each="cat : ${categories}" class="flex items-center cursor-pointer group">
+                  <input type="radio" name="categoryId" th:value="${cat.id}"
+                         th:checked="${filter.categoryId == cat.id}"
+                         class="mr-2"
+                         onchange="this.form.submit()"/>
+                  <span class="text-sm group-hover:text-gold-DEFAULT transition-colors" style="font-family:'Montserrat',sans-serif; color:#374151;" th:text="${cat.name}">Category</span>
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-gold w-full py-2 rounded-sm text-xs">
+              Apply Filters
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- ===== ITEM GRID ===== -->
+      <div style="flex:1; min-width:0;">
+        <!-- Result count -->
+        <div class="flex justify-between items-center mb-6">
+          <p class="text-sm" style="color:#6b7280; font-family:'Montserrat',sans-serif;">
+            <span th:text="${totalItems}">0</span> items found
+          </p>
+        </div>
+
+        <!-- No results -->
+        <div th:if="${items.isEmpty()}" class="text-center py-20">
+          <div class="text-6xl mb-4">✦</div>
+          <h3 class="font-serif text-2xl text-gray-600 mb-2">No items found</h3>
+          <p class="text-sm text-gray-400" style="font-family:'Montserrat',sans-serif;">Try a different search or category</p>
+          <a th:href="@{/catalog}" class="btn-gold inline-block mt-4 px-6 py-2 rounded-sm">
+            View All Items
+          </a>
+        </div>
+
+        <!-- Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.5rem;" th:unless="${items.isEmpty()}">
+          <div th:each="item : ${items}" class="bg-white rounded-sm shadow-sm overflow-hidden card-hover border" style="border-color:#e8d9b8;">
+
+            <!-- Image -->
+            <a th:href="@{/catalog/{slug}(slug=${item.slug})}" class="block relative overflow-hidden" style="padding-top:72%;">
+              <img th:if="${item.primaryImageUrl != null}"
+                   th:src="${item.primaryImageUrl}"
+                   th:alt="${item.name}"
+                   class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105"/>
+              <div th:unless="${item.primaryImageUrl != null}"
+                   class="absolute inset-0 flex items-center justify-center"
+                   style="background:linear-gradient(135deg,#F5E6B8,#e8d9b8);">
+                <span class="font-serif text-4xl" style="color:#C9A84C;">✦</span>
+              </div>
+
+              <!-- Featured badge -->
+              <div th:if="${item.featured}"
+                   class="absolute top-3 left-3 text-xs px-2 py-1 rounded-sm font-semibold tracking-wider"
+                   style="background:#C9A84C; color:#0B1628; font-family:'Montserrat',sans-serif; text-transform:uppercase; font-size:0.65rem; letter-spacing:0.1em;">
+                Featured
+              </div>
+            </a>
+
+            <!-- Info -->
+            <div class="p-4">
+              <p class="text-xs tracking-widest uppercase mb-1" style="color:#C9A84C; font-family:'Montserrat',sans-serif; font-weight:500;"
+                 th:text="${item.categoryName}">Category</p>
+              <h3 class="font-serif text-lg font-semibold leading-tight mb-2" style="color:#0B1628;">
+                <a th:href="@{/catalog/{slug}(slug=${item.slug})}" class="hover:text-gold-DEFAULT transition-colors"
+                   th:text="${item.name}">Item Name</a>
+              </h3>
+              <div class="flex items-center justify-between mt-3">
+                <div>
+                  <span class="font-serif text-xl font-semibold" style="color:#0B1628;" th:text="'$' + ${#numbers.formatDecimal(item.pricePerDay, 1, 2)}">$0.00</span>
+                  <span class="text-xs ml-1" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">/ day</span>
+                </div>
+                <a th:href="@{/catalog/{slug}(slug=${item.slug})}"
+                   class="btn-gold px-4 py-2 rounded-sm text-xs">
+                  Details
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${totalPages > 1}" class="flex justify-center mt-10 gap-2">
+          <a th:if="${currentPage > 0}"
+             th:href="@{/catalog(page=${currentPage - 1}, categoryId=${filter.categoryId}, search=${filter.search})}"
+             class="btn-navy px-4 py-2 rounded-sm text-xs">← Prev</a>
+
+          <span th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+            <a th:href="@{/catalog(page=${i}, categoryId=${filter.categoryId}, search=${filter.search})}"
+               th:text="${i + 1}"
+               th:class="${i == currentPage} ? 'btn-gold px-4 py-2 rounded-sm text-xs' : 'btn-navy px-4 py-2 rounded-sm text-xs'">1</a>
+          </span>
+
+          <a th:if="${currentPage < totalPages - 1}"
+             th:href="@{/catalog(page=${currentPage + 1}, categoryId=${filter.categoryId}, search=${filter.search})}"
+             class="btn-navy px-4 py-2 rounded-sm text-xs">Next →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</th:block>
+
+<th:block th:fragment="page-scripts"></th:block>
+</body>
+</html>

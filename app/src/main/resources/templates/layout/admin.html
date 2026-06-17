@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${pageTitle != null ? pageTitle + ' | Admin — Laulain Luxe Rentals' : 'Admin — Laulain Luxe Rentals'}">Admin</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@200;300;400;500;600;700&family=Cinzel:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+  <link rel="stylesheet" th:href="@{/css/luxury.css}"/>
+  <link rel="stylesheet" th:href="@{/css/utils.css}"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: #F4F1EC; font-family: 'Montserrat', sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ---- TOP BAR ---- */
+    .admin-topbar {
+      background: #0B1628;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(201,168,76,0.18);
+      flex-shrink: 0;
+    }
+    .admin-topbar-left { display: flex; align-items: center; gap: 14px; }
+    .admin-topbar-logo {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: #ffffff;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .admin-topbar-logo img { height: 32px; width: auto; }
+    .admin-topbar-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #0B1628;
+      background: linear-gradient(135deg, #A07830, #C9A84C);
+      padding: 3px 10px;
+      border-radius: 1px;
+    }
+    .admin-topbar-right { display: flex; align-items: center; gap: 1.25rem; }
+    .admin-topbar-link {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .admin-topbar-link:hover { color: #C9A84C; }
+
+    /* ---- LAYOUT ---- */
+    .admin-layout { display: flex; flex: 1; min-height: 0; }
+
+    /* ---- SIDEBAR ---- */
+    .admin-sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: #0B1628;
+      border-right: 1px solid rgba(201,168,76,0.12);
+      display: flex;
+      flex-direction: column;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+
+    .sidebar-section-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.55rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(201,168,76,0.5);
+      padding: 1.25rem 1.25rem 0.5rem;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      padding: 10px 1.25rem;
+      border-left: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .sidebar-link:hover {
+      color: #C9A84C;
+      background: rgba(201,168,76,0.06);
+      border-left-color: rgba(201,168,76,0.4);
+    }
+    .sidebar-link.active {
+      color: #C9A84C;
+      background: rgba(201,168,76,0.08);
+      border-left-color: #C9A84C;
+      font-weight: 500;
+    }
+    .sidebar-link .icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+    .sidebar-link:hover .icon,
+    .sidebar-link.active .icon { opacity: 1; }
+
+    .sidebar-divider {
+      height: 1px;
+      background: rgba(201,168,76,0.1);
+      margin: 8px 1.25rem;
+    }
+
+    /* ---- MAIN CONTENT ---- */
+    .admin-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Page header bar */
+    .admin-page-header {
+      background: #ffffff;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .admin-page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 300;
+      color: #0B1628;
+      line-height: 1.1;
+    }
+    .admin-breadcrumb {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      color: #9ca3af;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .admin-breadcrumb a {
+      color: #C9A84C;
+      text-decoration: none;
+    }
+    .admin-breadcrumb a:hover { text-decoration: underline; }
+
+    /* Content area */
+    .admin-content { padding: 1.75rem 2rem; flex: 1; }
+
+    /* Flash messages */
+    .admin-flash-success {
+      display: flex; align-items: center; gap: 10px;
+      background: #F5E6B8; border-left: 3px solid #C9A84C; color: #5a3e00;
+      padding: 10px 14px; border-radius: 1px; margin-bottom: 1.25rem;
+      font-family: 'Montserrat', sans-serif; font-size: 0.8rem;
+    }
+    .admin-flash-error {
+      display: flex; align-items: center; gap: 10px;
+      background: #FEE2E2; border-left: 3px solid #EF4444; color: #991B1B;
+      padding: 10px 14px; border-radius: 1px; margin-bottom: 1.25rem;
+      font-family: 'Montserrat', sans-serif; font-size: 0.8rem;
+    }
+
+    /* Cards */
+    .admin-card {
+      background: #ffffff;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 2px;
+      box-shadow: 0 1px 8px rgba(11,22,40,0.06);
+    }
+    .admin-card-header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: #0B1628;
+    }
+    .admin-card-body { padding: 1.25rem; }
+
+    /* Stat cards */
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 2px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 8px rgba(11,22,40,0.06);
+      transition: all 0.25s;
+      text-decoration: none;
+      display: block;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(11,22,40,0.12);
+      border-color: rgba(201,168,76,0.35);
+    }
+    .stat-value {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.25rem;
+      font-weight: 500;
+      color: #0B1628;
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #9ca3af;
+      margin-top: 6px;
+    }
+    .stat-accent-left { border-left: 3px solid #C9A84C; }
+    .stat-accent-green { border-left: 3px solid #10b981; }
+    .stat-accent-blue { border-left: 3px solid #3b82f6; }
+    .stat-accent-purple { border-left: 3px solid #8b5cf6; }
+
+    /* Buttons */
+    .btn-admin-primary {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #A07830, #C9A84C, #E8C96B);
+      color: #0B1628;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 1px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 2px 8px rgba(201,168,76,0.3);
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+    .btn-admin-primary:hover {
+      box-shadow: 0 4px 16px rgba(201,168,76,0.5);
+      transform: translateY(-1px);
+    }
+    .btn-admin-secondary {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: #0B1628;
+      color: #C9A84C;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 1px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-admin-secondary:hover { background: #152340; }
+    .btn-admin-outline {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: transparent;
+      color: #C9A84C;
+      padding: 7px 16px;
+      border: 1px solid rgba(201,168,76,0.45);
+      border-radius: 1px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-admin-outline:hover { background: rgba(201,168,76,0.08); border-color: #C9A84C; }
+    .btn-admin-danger {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: transparent;
+      color: #ef4444;
+      padding: 7px 14px;
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 1px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-admin-danger:hover { background: #FEE2E2; border-color: #ef4444; }
+
+    /* Tables */
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table thead tr { background: #0B1628; }
+    .admin-table thead th {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #C9A84C;
+      padding: 11px 14px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .admin-table tbody tr { border-bottom: 1px solid rgba(201,168,76,0.08); transition: background 0.15s; }
+    .admin-table tbody tr:hover { background: rgba(201,168,76,0.03); }
+    .admin-table tbody td {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.78rem;
+      color: #374151;
+      padding: 11px 14px;
+      vertical-align: middle;
+    }
+    .admin-table tbody tr:nth-child(even) { background: rgba(244,241,236,0.5); }
+    .admin-table tbody tr:nth-child(even):hover { background: rgba(201,168,76,0.04); }
+
+    /* Form fields */
+    .admin-input {
+      width: 100%;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.82rem;
+      color: #0B1628;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      border-radius: 1px;
+      padding: 8px 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .admin-input:focus { border-color: #C9A84C; box-shadow: 0 0 0 3px rgba(201,168,76,0.1); }
+    .admin-label {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #374151;
+      margin-bottom: 5px;
+    }
+    .admin-field-error {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.7rem;
+      color: #DC2626;
+      margin-top: 4px;
+    }
+
+    /* Responsive collapse sidebar on mobile */
+    @media (max-width: 768px) {
+      .admin-sidebar { display: none; }
+      .admin-content { padding: 1rem; }
+      .admin-page-header { padding: 1rem; }
+    }
+  </style>
+
+  <th:block th:replace="${adminHeadExtra}"></th:block>
+</head>
+
+<body>
+
+<!-- ============================================================
+     ADMIN TOP BAR
+     ============================================================ -->
+<header class="admin-topbar">
+  <div class="admin-topbar-left">
+    <!-- Hamburger (mobile) -->
+    <button onclick="document.getElementById('admin-sidebar').classList.toggle('open')"
+            style="background:none;border:none;cursor:pointer;padding:4px;display:none;" id="sidebar-toggle">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+      </svg>
+    </button>
+
+    <a th:href="@{/admin/dashboard}" class="admin-topbar-logo">
+      <img th:src="@{/images/logo.png}" alt="LR"
+           onerror="this.style.display='none'"/>
+      <span>Laulain Luxe Rentals</span>
+    </a>
+    <span class="admin-topbar-badge">Admin Panel</span>
+  </div>
+
+  <div class="admin-topbar-right">
+    <a th:href="@{/}" class="admin-topbar-link">← Public Site</a>
+    <span style="color:rgba(255,255,255,0.2);">|</span>
+    <span style="font-family:'Montserrat',sans-serif; font-size:0.62rem; color:rgba(255,255,255,0.45);"
+          sec:authentication="name">Admin</span>
+    <form th:action="@{/logout}" method="post" style="margin:0;">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit" class="admin-topbar-link" style="background:none;border:none;cursor:pointer;">Sign Out</button>
+    </form>
+  </div>
+</header>
+
+<!-- ============================================================
+     ADMIN BODY: SIDEBAR + MAIN
+     ============================================================ -->
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+
+    <!-- Overview -->
+    <div class="sidebar-section-label">Overview</div>
+    <a th:href="@{/admin/dashboard}"
+       th:classappend="${#httpServletRequest.requestURI.contains('/admin/dashboard')} ? ' active' : ''"
+       class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+      </svg>
+      Dashboard
+    </a>
+    <a th:href="@{/admin/calendar}"
+       th:classappend="${#httpServletRequest.requestURI.contains('/admin/calendar')} ? ' active' : ''"
+       class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+      </svg>
+      Calendar
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Reservations -->
+    <div class="sidebar-section-label">Reservations</div>
+    <a th:href="@{/admin/bookings}"
+       th:classappend="${#httpServletRequest.requestURI.contains('/admin/bookings')} ? ' active' : ''"
+       class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z"/>
+      </svg>
+      All Bookings
+    </a>
+    <a th:href="@{/admin/bookings(status=PENDING)}" class="sidebar-link"
+       style="padding-left:2.5rem; font-size:0.65rem;">
+      ◆ Pending
+    </a>
+    <a th:href="@{/admin/bookings(status=CONFIRMED)}" class="sidebar-link"
+       style="padding-left:2.5rem; font-size:0.65rem;">
+      ◆ Confirmed
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Documents -->
+    <div class="sidebar-section-label">Documents</div>
+    <a th:href="@{/admin/bookings}"
+       class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+      </svg>
+      Quotes &amp; Contracts
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Catalog -->
+    <div class="sidebar-section-label">Catalog</div>
+    <a th:href="@{/admin/items}"
+       th:classappend="${#httpServletRequest.requestURI.contains('/admin/items')} ? ' active' : ''"
+       class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5"/>
+      </svg>
+      Manage Items
+    </a>
+    <a th:href="@{/admin/items/new}" class="sidebar-link" style="padding-left:2.5rem; font-size:0.65rem;">
+      ◆ Add New Item
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Settings -->
+    <div class="sidebar-section-label">System</div>
+    <a href="/actuator/health" target="_blank" class="sidebar-link">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/>
+      </svg>
+      Health Check
+    </a>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="admin-main">
+
+    <!-- Page header -->
+    <div class="admin-page-header" th:if="${pageTitle != null}">
+      <div>
+        <div class="admin-breadcrumb" th:if="${breadcrumb != null}">
+          <th:block th:utext="${breadcrumb}">Breadcrumb</th:block>
+        </div>
+        <h1 class="admin-page-title" th:text="${pageTitle}">Page Title</h1>
+      </div>
+      <div th:if="${headerActions != null}">
+        <th:block th:replace="${headerActions}"></th:block>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="admin-content">
+
+      <!-- Flash messages -->
+      <div th:if="${successMessage}" class="admin-flash-success">
+        <svg width="16" height="16" fill="none" stroke="#A07830" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span th:text="${successMessage}">Success</span>
+      </div>
+      <div th:if="${errorMessage}" class="admin-flash-error">
+        <svg width="16" height="16" fill="none" stroke="#991B1B" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+        </svg>
+        <span th:text="${errorMessage}">Error</span>
+      </div>
+
+      <th:block th:replace="${adminContent}"></th:block>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Mobile sidebar toggle
+  const toggle = document.getElementById('sidebar-toggle');
+  if (window.innerWidth <= 768 && toggle) toggle.style.display = 'block';
+  window.addEventListener('resize', () => {
+    if (toggle) toggle.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+  });
+
+  // Tailwind config after load
+  window.addEventListener('load', function() {
+    if (window.tailwind) {
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              gold: { DEFAULT:'#C9A84C', light:'#E8C96B', pale:'#F5E6B8', dark:'#A07830' },
+              navy: { DEFAULT:'#0B1628', mid:'#152340', light:'#1E3260' },
+            }
+          }
+        }
+      };
+    }
+  });
+</script>
+
+<th:block th:replace="${adminScripts}"></th:block>
+</body>
+</html>

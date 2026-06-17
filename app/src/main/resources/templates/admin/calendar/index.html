@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin :: html(adminContent=~{::admin-content}, adminScripts=~{::admin-scripts}, adminHeadExtra=~{::admin-head-extra}, headerActions=~{::header-actions})}">
+<head><title>Calendar</title></head>
+<body>
+
+<th:block th:fragment="admin-head-extra">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css"/>
+  <style>
+    .fc { font-family: 'Montserrat', sans-serif; }
+    .fc-toolbar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; color: #0B1628; }
+    .fc-button-primary { background: #0B1628 !important; border-color: #0B1628 !important; font-size: 0.68rem !important; letter-spacing: 0.1em; text-transform: uppercase; }
+    .fc-button-primary:hover { background: #152340 !important; }
+    .fc-button-primary.fc-button-active { background: #C9A84C !important; border-color: #C9A84C !important; color: #0B1628 !important; }
+    .fc-daygrid-day.fc-day-today { background: rgba(201,168,76,0.06) !important; }
+    .fc-event { cursor: pointer; border: none !important; border-radius: 2px !important; font-size: 0.68rem; }
+    .fc-col-header-cell-cushion { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: #6b7280; }
+    .fc-daygrid-day.fully-booked-day { background: rgba(239,68,68,0.06) !important; }
+    #tooltip-cal { position:fixed; z-index:9999; background:#0B1628; color:#fff; padding:10px 14px; border-radius:2px; font-size:0.72rem; font-family:'Montserrat',sans-serif; pointer-events:none; border-left:3px solid #C9A84C; min-width:200px; display:none; }
+  </style>
+</th:block>
+
+<th:block th:fragment="header-actions">
+  <div style="display:flex; gap:8px;">
+    <button onclick="document.getElementById('blockModal').style.display='flex'"
+            class="btn-admin-primary">+ Block Dates</button>
+    <a th:href="@{/admin/bookings}" class="btn-admin-secondary">All Bookings</a>
+  </div>
+</th:block>
+
+<th:block th:fragment="admin-content">
+
+  <div style="display:grid; grid-template-columns:220px 1fr; gap:1.25rem; align-items:start;">
+
+    <!-- Sidebar -->
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+
+      <!-- Legend -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title" style="font-size:0.9rem;">Legend</span></div>
+        <div class="admin-card-body" style="padding:0.75rem 1rem;">
+          <div th:each="l : ${ {{'#C9A84C','Confirmed'},{'#6b7280','Pending'},{'#3b82f6','Quote Sent'},{'#10b981','In Progress'},{'#8b5cf6','Completed'},{'#ef4444','Cancelled'}} }"
+               style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <div th:style="'width:10px;height:10px;border-radius:2px;background:'+${l[0]};flex-shrink:0;"></div>
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.72rem; color:#374151;" th:text="${l[1]}">Status</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+            <div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,0.15);border:1px solid #ef4444;flex-shrink:0;"></div>
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.72rem; color:#374151;">Fully Booked Day</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Item filter -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title" style="font-size:0.9rem;">Filter Items</span></div>
+        <div class="admin-card-body" style="padding:0.75rem 1rem; max-height:260px; overflow-y:auto;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:8px;">
+            <input type="checkbox" value="all" checked onchange="filterCalendar()" style="accent-color:#C9A84C;"/>
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.72rem; color:#374151;">All Items</span>
+          </label>
+          <label th:each="item : ${items}"
+                 style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom:8px;">
+            <input type="checkbox" th:value="${item.id}" checked
+                   class="item-filter-cb" onchange="filterCalendar()" style="accent-color:#C9A84C;"/>
+            <span style="font-family:'Montserrat',sans-serif; font-size:0.72rem; color:#374151;" th:text="${item.name}">Item</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title" style="font-size:0.9rem;">This View</span></div>
+        <div class="admin-card-body" style="padding:0.75rem 1rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-family:'Montserrat',sans-serif;">
+            <span style="font-size:0.68rem; color:#6b7280;">Bookings</span>
+            <span id="stat-total" style="font-size:0.78rem; font-weight:600; color:#0B1628;">—</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-family:'Montserrat',sans-serif;">
+            <span style="font-size:0.68rem; color:#6b7280;">Full Days</span>
+            <span id="stat-full" style="font-size:0.78rem; font-weight:600; color:#ef4444;">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="admin-card">
+      <div style="padding:1.25rem;">
+        <div id="calendar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="tooltip-cal"></div>
+
+  <!-- Block Modal -->
+  <div id="blockModal" style="display:none; position:fixed; inset:0; background:rgba(11,22,40,0.75); z-index:500; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:2rem; width:100%; max-width:420px; margin:1rem; border-radius:2px;">
+      <h3 style="font-family:'Cormorant Garamond',serif; font-size:1.4rem; color:#0B1628; margin-bottom:1rem; font-weight:400;">Block Dates</h3>
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        <div>
+          <label class="admin-label">Item</label>
+          <select id="blockItemId" class="admin-input">
+            <option value="">— Select item —</option>
+            <option th:each="item : ${items}" th:value="${item.id}" th:text="${item.name}">Item</option>
+          </select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+          <div>
+            <label class="admin-label">Start Date</label>
+            <input type="date" id="blockStart" class="admin-input"/>
+          </div>
+          <div>
+            <label class="admin-label">End Date</label>
+            <input type="date" id="blockEnd" class="admin-input"/>
+          </div>
+        </div>
+        <div>
+          <label class="admin-label">Reason</label>
+          <select id="blockReason" class="admin-input">
+            <option value="MAINTENANCE">Maintenance</option>
+            <option value="HOLD">Personal Hold</option>
+            <option value="CLEANING">Cleaning / Inspection</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:1.25rem;">
+        <button onclick="submitBlock()" class="btn-admin-primary" style="flex:1; justify-content:center;">Block Dates</button>
+        <button onclick="document.getElementById('blockModal').style.display='none'"
+                class="btn-admin-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</th:block>
+
+<th:block th:fragment="admin-scripts">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+  const CSRF = document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '';
+  const tooltip = document.getElementById('tooltip-cal');
+  let cal, allEvents = [], fullyBookedDates = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+      initialView: 'dayGridMonth',
+      headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,listMonth' },
+      height: 'auto',
+      events: fetchEvents,
+      eventClick: info => {
+        const bid = info.event.extendedProps?.bookingId;
+        if (bid) window.location.href = `/admin/bookings/${bid}`;
+      },
+      eventMouseEnter: info => {
+        const p = info.event.extendedProps || {};
+        tooltip.innerHTML = `<strong style="color:#C9A84C;">${info.event.title}</strong><br/>
+          ${p.itemName ? 'Item: '+p.itemName+'<br/>' : ''}
+          Status: ${(p.status||'').toLowerCase().replace('_',' ')}
+          <br/><small style="color:#9ca3af;">Click to view</small>`;
+        tooltip.style.display = 'block';
+      },
+      eventMouseLeave: () => { tooltip.style.display = 'none'; },
+    });
+    cal.render();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (tooltip.style.display === 'block') {
+      tooltip.style.left = (e.clientX + 14) + 'px';
+      tooltip.style.top  = (e.clientY - 10) + 'px';
+    }
+  });
+
+  async function fetchEvents(info, success, failure) {
+    const s = info.startStr.substring(0,10), e = info.endStr.substring(0,10);
+    try {
+      const res = await fetch(`/api/admin/calendar/events?start=${s}&end=${e}`);
+      const data = await res.json();
+      allEvents = data.events || [];
+      fullyBookedDates = data.fullyBookedDates || [];
+      document.getElementById('stat-total').textContent = data.totalBookingsInRange ?? '—';
+      document.getElementById('stat-full').textContent = fullyBookedDates.length;
+      // Mark fully-booked cells
+      setTimeout(() => {
+        document.querySelectorAll('.fc-daygrid-day').forEach(cell => {
+          const d = cell.getAttribute('data-date');
+          cell.classList.toggle('fully-booked-day', fullyBookedDates.includes(d));
+        });
+      }, 80);
+      success(allEvents);
+    } catch(err) { failure(err); }
+  }
+
+  function filterCalendar() { cal?.refetchEvents(); }
+
+  async function submitBlock() {
+    const itemId = document.getElementById('blockItemId').value;
+    const startDate = document.getElementById('blockStart').value;
+    const endDate = document.getElementById('blockEnd').value;
+    const reason = document.getElementById('blockReason').value;
+    if (!itemId || !startDate || !endDate) { alert('Please fill in all fields.'); return; }
+    const res = await fetch(`/api/admin/availability/block?itemId=${itemId}&startDate=${startDate}&endDate=${endDate}&reason=${reason}`, {
+      method: 'POST', headers: { 'X-XSRF-TOKEN': CSRF }
+    });
+    if (res.ok) {
+      document.getElementById('blockModal').style.display = 'none';
+      cal.refetchEvents();
+    } else { alert('Failed to block dates.'); }
+  }
+
+  document.getElementById('blockModal')?.addEventListener('click', e => {
+    if (e.target.id === 'blockModal') e.target.style.display = 'none';
+  });
+</script>
+</th:block>
+</body>
+</html>

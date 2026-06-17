@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Item Detail</title></head>
+<body>
+
+<th:block th:fragment="main-content">
+<main>
+  <!-- Breadcrumb -->
+  <div class="max-w-7xl mx-auto px-4 py-4">
+    <nav class="text-sm" style="font-family:'Montserrat',sans-serif; color:#9ca3af;">
+      <a th:href="@{/}" class="hover:text-gold-DEFAULT transition-colors">Home</a>
+      <span class="mx-2">›</span>
+      <a th:href="@{/catalog}" class="hover:text-gold-DEFAULT transition-colors">Collection</a>
+      <span class="mx-2">›</span>
+      <span style="color:#0B1628;" th:text="${item.name}">Item</span>
+    </nav>
+  </div>
+
+  <!-- Item Detail -->
+  <div class="max-w-7xl mx-auto px-4 pb-16">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3rem;">
+
+      <!-- ===== IMAGE GALLERY ===== -->
+      <div>
+        <!-- Main image -->
+        <div class="relative overflow-hidden rounded-sm shadow-md" style="padding-top:80%; background:#F5E6B8;">
+          <img id="mainImage"
+               th:src="${item.primaryImageUrl != null ? item.primaryImageUrl : ''}"
+               th:alt="${item.name}"
+               th:style="${item.primaryImageUrl == null ? 'display:none' : ''}"
+               class="absolute inset-0 w-full h-full object-cover"/>
+          <div th:unless="${item.primaryImageUrl != null}"
+               class="absolute inset-0 flex items-center justify-center">
+            <span class="font-serif text-6xl" style="color:#C9A84C;">✦</span>
+          </div>
+        </div>
+
+        <!-- Thumbnail strip -->
+        <div th:if="${item.images != null and item.images.size() > 1}"
+             class="flex gap-2 mt-3 overflow-x-auto pb-1">
+          <button th:each="img : ${item.images}"
+                  th:onclick="'setMainImage(\'' + ${img.s3Url} + '\')'"
+                  class="flex-shrink-0 w-16 h-16 rounded-sm overflow-hidden border-2 hover:border-gold-DEFAULT transition-colors"
+                  style="border-color:#e8d9b8;">
+            <img th:src="${img.s3Url}" th:alt="${img.altText}" class="w-full h-full object-cover"/>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== ITEM INFO ===== -->
+      <div class="flex flex-col">
+        <!-- Category badge -->
+        <div>
+          <span class="text-xs tracking-widest uppercase font-semibold" style="color:#C9A84C; font-family:'Montserrat',sans-serif; letter-spacing:0.2em;"
+                th:text="${item.category?.name}">Category</span>
+        </div>
+
+        <h1 class="font-serif text-3xl md:text-4xl font-light mt-2 leading-tight" style="color:#0B1628;" th:text="${item.name}">Item Name</h1>
+
+        <div class="w-12 h-px my-4" style="background:linear-gradient(90deg,#C9A84C,transparent);"></div>
+
+        <!-- Price -->
+        <div class="flex items-baseline gap-2 mb-6">
+          <span class="font-serif text-3xl font-semibold" style="color:#0B1628;"
+                th:text="'$' + ${#numbers.formatDecimal(item.pricePerDay, 1, 2)}">$0.00</span>
+          <span class="text-sm" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">per day</span>
+        </div>
+
+        <!-- Description -->
+        <p th:if="${item.description}" class="text-sm leading-relaxed mb-6"
+           style="color:#374151; font-family:'Montserrat',sans-serif; line-height:1.8;"
+           th:text="${item.description}">Description here.</p>
+
+        <!-- Specs grid -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem; font-size:0.875rem;" style="font-family:'Montserrat',sans-serif;">
+          <div th:if="${item.dimensions}" class="p-3 rounded-sm" style="background:#F5E6B8;">
+            <span class="text-xs uppercase tracking-wider block mb-1" style="color:#A07830;">Dimensions</span>
+            <span style="color:#0B1628;" th:text="${item.dimensions}">—</span>
+          </div>
+          <div th:if="${item.color}" class="p-3 rounded-sm" style="background:#F5E6B8;">
+            <span class="text-xs uppercase tracking-wider block mb-1" style="color:#A07830;">Color</span>
+            <span style="color:#0B1628;" th:text="${item.color}">—</span>
+          </div>
+          <div th:if="${item.material}" class="p-3 rounded-sm" style="background:#F5E6B8;">
+            <span class="text-xs uppercase tracking-wider block mb-1" style="color:#A07830;">Material</span>
+            <span style="color:#0B1628;" th:text="${item.material}">—</span>
+          </div>
+          <div class="p-3 rounded-sm" style="background:#F5E6B8;">
+            <span class="text-xs uppercase tracking-wider block mb-1" style="color:#A07830;">Min. Rental</span>
+            <span style="color:#0B1628;" th:text="${item.minRentalDays} + ' day(s)'">1 day</span>
+          </div>
+        </div>
+
+        <!-- Care instructions -->
+        <div th:if="${item.careInstructions}"
+             class="border-l-2 pl-4 mb-6" style="border-color:#C9A84C;">
+          <p class="text-xs uppercase tracking-widest mb-1" style="color:#A07830; font-family:'Montserrat',sans-serif;">Care Instructions</p>
+          <p class="text-sm" style="color:#374151; font-family:'Montserrat',sans-serif;" th:text="${item.careInstructions}"></p>
+        </div>
+
+        <!-- CTA buttons -->
+        <div style="display:flex; flex-wrap:wrap; gap:0.75rem; margin-top:auto;">
+          <a th:href="@{/booking/new(itemId=${item.id})}"
+             class="btn-gold flex-1 py-3 rounded-sm text-center text-xs">
+            Reserve This Item
+          </a>
+          <a th:href="@{/catalog}"
+             class="btn-navy flex-1 py-3 rounded-sm text-center text-xs">
+            ← Back to Collection
+          </a>
+        </div>
+
+        <!-- Availability note -->
+        <p class="text-xs mt-4 text-center" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">
+          ✦ Check availability during booking — real-time calendar
+        </p>
+
+        <!-- Availability calendar fragment -->
+        <div th:replace="~{fragments/availability-calendar :: calendar(itemId=${item.id})}"></div>
+      </div>
+    </div>
+  </div>
+</main>
+</th:block>
+
+<th:block th:fragment="page-scripts">
+<script>
+function setMainImage(url) {
+    const img = document.getElementById('mainImage');
+    if (img) { img.src = url; img.style.display = ''; }
+}
+</script>
+</th:block>
+</body>
+</html>

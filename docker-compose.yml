@@ -1,0 +1,74 @@
+version: '3.9'
+
+# ============================================================
+#  Laulain Luxe Rentals — Local Development Stack
+#
+#  Usage:
+#    docker compose up -d db              # Start only DB (then run app with mvn)
+#    docker compose up -d                 # Start DB + App
+#    docker compose logs -f app           # Follow app logs
+#    docker compose down -v               # Stop and remove volumes
+#
+#  App runs at:  http://localhost:8080
+#  Login:        admin / admin123   (ROLE_ADMIN)
+#                customer / customer123  (ROLE_CUSTOMER)
+# ============================================================
+
+services:
+
+  # ============================================================
+  #  PostgreSQL 15
+  # ============================================================
+  db:
+    image: postgres:15-alpine
+    container_name: laulain-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       laulain_dev
+      POSTGRES_USER:     laulain_user
+      POSTGRES_PASSWORD: laulain_dev_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U laulain_user -d laulain_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================
+  #  Spring Boot App
+  # ============================================================
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: laulain-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_HOST:     db
+      DB_PORT:     5432
+      DB_NAME:     laulain_dev
+      DB_USER:     laulain_user
+      DB_PASSWORD: laulain_dev_pass
+      APP_BASE_URL: http://localhost:8080
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health/liveness"]
+      interval: 30s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: laulain-network

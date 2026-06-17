@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head><meta charset="UTF-8"/><title>Booking Cancelled</title></head>
+<body style="margin:0;padding:0;background:#FAF7F0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF7F0;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0"
+           style="max-width:600px;width:100%;background:#ffffff;border:1px solid #e8d9b8;">
+
+      <!-- Header -->
+      <tr><td style="background:#0B1628;padding:28px 40px;text-align:center;">
+        <div style="color:#C9A84C;font-size:10px;letter-spacing:4px;text-transform:uppercase;">Laulain Luxe Rentals</div>
+      </td></tr>
+
+      <!-- Gray bar -->
+      <tr><td style="background:#f3f4f6;padding:12px 40px;text-align:center;border-bottom:1px solid #e8d9b8;">
+        <span style="color:#374151;font-size:13px;font-weight:600;">Booking Cancellation Confirmation</span>
+      </td></tr>
+
+      <!-- Body -->
+      <tr><td style="padding:40px;">
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 16px;">
+          Hi <strong th:text="${customer.firstName}">there</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 24px;">
+          Your booking has been cancelled. We're sorry to hear things didn't work out.
+          We hope to have the opportunity to serve you in the future.
+        </p>
+
+        <!-- Cancelled booking reference -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="background:#FAF7F0;border:1px solid #e8d9b8;border-radius:4px;margin-bottom:24px;">
+          <tr><td style="padding:20px;">
+            <table width="100%" cellpadding="6" cellspacing="0">
+              <tr>
+                <td style="color:#C9A84C;font-size:9px;letter-spacing:2px;text-transform:uppercase;width:40%;">Booking #</td>
+                <td style="color:#0B1628;font-size:14px;font-weight:600;" th:text="${booking.bookingNumber}">LLR-0001</td>
+              </tr>
+              <tr>
+                <td style="color:#C9A84C;font-size:9px;letter-spacing:2px;text-transform:uppercase;">Event Date</td>
+                <td style="color:#0B1628;font-size:14px;" th:text="${eventDateFormatted}">Date</td>
+              </tr>
+              <tr>
+                <td style="color:#C9A84C;font-size:9px;letter-spacing:2px;text-transform:uppercase;">Status</td>
+                <td style="color:#ef4444;font-size:14px;font-weight:600;">Cancelled</td>
+              </tr>
+            </table>
+          </td></tr>
+        </table>
+
+        <!-- Refund info -->
+        <table width="100%" cellpadding="0" cellspacing="0"
+               style="background:#FAF7F0;border-left:4px solid #6b7280;margin-bottom:24px;">
+          <tr><td style="padding:14px 16px;">
+            <p style="color:#374151;font-size:12px;font-weight:700;margin:0 0 4px;">Regarding Your Payment</p>
+            <p style="color:#6b7280;font-size:12px;margin:0;line-height:1.6;">
+              If a deposit was paid, please refer to our cancellation policy in your contract.
+              Our team will reach out within 2 business days regarding any applicable refunds.
+            </p>
+          </td></tr>
+        </table>
+
+        <!-- Book again CTA -->
+        <div style="text-align:center;margin-bottom:24px;">
+          <p style="color:#374151;font-size:13px;margin:0 0 12px;">
+            Ready to plan your next event?
+          </p>
+          <a th:href="${baseUrl + '/booking/new'}"
+             style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#E8C96B);color:#0B1628;padding:12px 28px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:2px;">
+            Book Again
+          </a>
+        </div>
+
+        <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
+          Questions? Contact us at
+          <a th:href="'mailto:' + ${contactEmail}" th:text="${contactEmail}"
+             style="color:#C9A84C;">reservations@laulainluxerentals.com</a>
+        </p>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:#F5E6B8;padding:20px 40px;text-align:center;border-top:1px solid #e8d9b8;">
+        <p style="color:#A07830;font-size:11px;margin:0;">
+          © 2024 Laulain Luxe Rentals · Fate, Texas · Dallas Metro Area
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

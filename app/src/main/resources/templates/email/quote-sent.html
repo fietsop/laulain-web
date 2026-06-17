@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head><meta charset="UTF-8"/><title>Your Quote</title></head>
+<body style="margin:0;padding:0;background:#FAF7F0;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF7F0;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border:1px solid #e8d9b8;">
+
+      <!-- Header -->
+      <tr><td style="background:#0B1628;padding:28px 40px;text-align:center;">
+        <div style="color:#C9A84C;font-size:10px;letter-spacing:4px;text-transform:uppercase;">Laulain Luxe Rentals</div>
+      </td></tr>
+
+      <!-- Body -->
+      <tr><td style="padding:40px;">
+        <h1 style="font-size:26px;font-weight:300;color:#0B1628;margin:0 0 6px;font-family:Georgia,serif;">Your Quote is Ready</h1>
+        <div style="width:40px;height:2px;background:#C9A84C;margin-bottom:20px;"></div>
+
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 16px;">
+          Hi <strong th:text="${customer.firstName}">there</strong>,
+        </p>
+        <p style="color:#374151;font-size:14px;line-height:1.7;margin:0 0 24px;">
+          Your personalized quote for your upcoming event is ready. Please review it and let us know if you have any questions.
+        </p>
+
+        <!-- Quote box -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#FAF7F0;border:1px solid #e8d9b8;border-radius:4px;margin-bottom:24px;">
+          <tr><td style="padding:20px;">
+            <table width="100%" cellpadding="6" cellspacing="0">
+              <tr><td style="color:#C9A84C;font-size:10px;letter-spacing:2px;text-transform:uppercase;width:40%;">Quote #</td>
+                  <td style="color:#0B1628;font-size:14px;font-weight:600;" th:text="${quote.quoteNumber}">LLR-Q-0001</td></tr>
+              <tr><td style="color:#C9A84C;font-size:10px;letter-spacing:2px;text-transform:uppercase;">Event Date</td>
+                  <td style="color:#0B1628;font-size:14px;" th:text="${#temporals.format(booking.eventDate,'MMMM d, yyyy')}">Date</td></tr>
+              <tr><td style="color:#C9A84C;font-size:10px;letter-spacing:2px;text-transform:uppercase;">Total</td>
+                  <td style="color:#0B1628;font-size:16px;font-weight:700;" th:text="'$'+${#numbers.formatDecimal(quote.totalAmount,1,2)}">$0</td></tr>
+              <tr><td style="color:#C9A84C;font-size:10px;letter-spacing:2px;text-transform:uppercase;">Deposit Due</td>
+                  <td style="color:#A07830;font-size:14px;font-weight:600;" th:text="'$'+${#numbers.formatDecimal(quote.depositAmount,1,2)}">$0</td></tr>
+              <tr><td style="color:#C9A84C;font-size:10px;letter-spacing:2px;text-transform:uppercase;">Valid Until</td>
+                  <td style="color:#0B1628;font-size:14px;" th:text="${#temporals.format(quote.validUntil,'MMMM d, yyyy')}">Date</td></tr>
+            </table>
+          </td></tr>
+        </table>
+
+        <!-- CTA buttons -->
+        <table cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
+          <tr>
+            <td style="padding-right:8px;">
+              <a th:href="${acceptUrl}" style="display:inline-block;background:linear-gradient(135deg,#C9A84C,#E8C96B);color:#0B1628;padding:12px 28px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:2px;">
+                Accept Quote
+              </a>
+            </td>
+            <td>
+              <a th:href="${pdfUrl}" style="display:inline-block;background:#0B1628;color:#C9A84C;padding:12px 28px;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:2px;">
+                View PDF
+              </a>
+            </td>
+          </tr>
+        </table>
+
+        <p style="color:#9ca3af;font-size:12px;text-align:center;">
+          This quote expires on <strong th:text="${#temporals.format(quote.validUntil,'MMMM d, yyyy')}">date</strong>.
+          Questions? Reply to this email.
+        </p>
+      </td></tr>
+
+      <!-- Footer -->
+      <tr><td style="background:#F5E6B8;padding:20px 40px;text-align:center;border-top:1px solid #e8d9b8;">
+        <p style="color:#A07830;font-size:11px;margin:0;">
+          © 2024 Laulain Luxe Rentals · Fate, Texas · Dallas Metro Area
+        </p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

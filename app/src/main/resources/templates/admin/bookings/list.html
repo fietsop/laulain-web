@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin :: html(adminContent=~{::admin-content}, adminScripts=~{::admin-scripts}, adminHeadExtra=~{}, headerActions=~{::header-actions})}">
+<head><title>Bookings</title></head>
+<body>
+
+<th:block th:fragment="header-actions">
+  <a th:href="@{/admin/calendar}" class="btn-admin-secondary">Calendar View</a>
+</th:block>
+
+<th:block th:fragment="admin-content">
+
+  <!-- Filter bar -->
+  <div class="admin-card" style="margin-bottom:1.25rem;">
+    <div class="admin-card-body" style="padding:1rem 1.25rem;">
+      <form th:action="@{/admin/bookings}" method="get"
+            style="display:flex; flex-wrap:wrap; gap:0.75rem; align-items:flex-end;">
+        <div>
+          <label class="admin-label">Search</label>
+          <input type="text" name="search" th:value="${search}"
+                 placeholder="Name, email, booking #…" class="admin-input" style="width:220px;"/>
+        </div>
+        <div>
+          <label class="admin-label">Status</label>
+          <select name="status" class="admin-input" style="width:160px;">
+            <option value="">All Statuses</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"
+                    th:selected="${s.name() == selectedStatus}">Status</option>
+          </select>
+        </div>
+        <div>
+          <label class="admin-label">Event Date</label>
+          <input type="date" name="eventDate" th:value="${selectedDate}" class="admin-input" style="width:160px;"/>
+        </div>
+        <button type="submit" class="btn-admin-primary">Filter</button>
+        <a th:href="@{/admin/bookings}" class="btn-admin-secondary">Clear</a>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bookings table -->
+  <div class="admin-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Booking #</th>
+          <th>Customer</th>
+          <th>Event Date</th>
+          <th>Event Type</th>
+          <th style="text-align:right;">Total</th>
+          <th style="text-align:center;">Status</th>
+          <th style="text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="b : ${bookings.content}">
+          <td>
+            <span style="font-weight:600; color:#0B1628;" th:text="${b.bookingNumber}">LLR-0001</span>
+          </td>
+          <td>
+            <div style="font-weight:500; color:#0B1628;" th:text="${b.customerName}">Name</div>
+          </td>
+          <td>
+            <span style="font-weight:600; color:#0B1628;"
+                  th:text="${#temporals.format(b.eventDate,'MMM d, yyyy')}">Date</span>
+          </td>
+          <td th:text="${b.eventType}">Wedding</td>
+          <td style="text-align:right;">
+            <span style="font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:600; color:#0B1628;"
+                  th:text="'$' + ${#numbers.formatDecimal(b.totalAmount,1,2)}">$0</span>
+          </td>
+          <td style="text-align:center;">
+            <span style="display:inline-block; font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:3px 10px; border-radius:20px;"
+                  th:text="${b.statusLabel}"
+                  th:style="${b.statusColor == 'gold'} ? 'background:#F5E6B8;color:#7A5C1E;'
+                            : (${b.statusColor == 'green'} ? 'background:#D1FAE5;color:#065F46;'
+                            : (${b.statusColor == 'blue'} ? 'background:#DBEAFE;color:#1E40AF;'
+                            : (${b.statusColor == 'red'} ? 'background:#FEE2E2;color:#991B1B;'
+                            : (${b.statusColor == 'purple'} ? 'background:#EDE9FE;color:#5B21B6;'
+                            : 'background:#F3F4F6;color:#374151;'))))">
+              Status
+            </span>
+          </td>
+          <td style="text-align:center;">
+            <a th:href="@{/admin/bookings/{id}(id=${b.id})}" class="btn-admin-secondary" style="padding:5px 14px;">View</a>
+          </td>
+        </tr>
+        <tr th:if="${bookings.isEmpty()}">
+          <td colspan="7" style="text-align:center; padding:3rem; color:#9ca3af;">
+            <div style="color:#C9A84C; font-size:1.5rem; margin-bottom:8px;">✦</div>
+            <div style="font-family:'Montserrat',sans-serif; font-size:0.82rem;">No bookings found.</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div th:if="${bookings.totalPages > 1}"
+         style="display:flex; justify-content:center; gap:8px; padding:1rem; border-top:1px solid rgba(201,168,76,0.1);">
+      <a th:if="${currentPage > 0}"
+         th:href="@{/admin/bookings(page=${currentPage - 1},status=${selectedStatus},search=${search})}"
+         class="btn-admin-secondary" style="padding:6px 14px;">← Prev</a>
+      <a th:if="${currentPage < bookings.totalPages - 1}"
+         th:href="@{/admin/bookings(page=${currentPage + 1},status=${selectedStatus},search=${search})}"
+         class="btn-admin-secondary" style="padding:6px 14px;">Next →</a>
+    </div>
+  </div>
+
+</th:block>
+
+<th:block th:fragment="admin-scripts"></th:block>
+</body>
+</html>

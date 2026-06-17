@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/admin :: html(adminContent=~{::admin-content}, adminScripts=~{::admin-scripts}, adminHeadExtra=~{}, headerActions=~{::header-actions})}">
+<head><title>Quote Detail</title></head>
+<body>
+
+<th:block th:fragment="header-actions">
+  <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <a th:href="@{/admin/bookings/{id}(id=${quote.bookingId})}" class="btn-admin-secondary">← Booking</a>
+    <!-- Send quote -->
+    <form th:if="${quote.status.name() == 'DRAFT' or quote.status.name() == 'SENT'}"
+          th:action="@{/admin/quotes/{id}/send(id=${quote.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit" class="btn-admin-primary"
+              th:text="${quote.status.name() == 'DRAFT'} ? 'Send to Customer' : 'Resend Quote'">Send</button>
+    </form>
+    <!-- Download PDF -->
+    <a th:if="${quote.pdfUrl}" th:href="${quote.pdfUrl}" target="_blank" class="btn-admin-outline">
+      Download PDF ↗
+    </a>
+    <!-- Create Contract (only if accepted) -->
+    <form th:if="${quote.status.name() == 'ACCEPTED'}"
+          th:action="@{/admin/quotes/{id}/contracts(id=${quote.id})}" method="post">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+      <button type="submit" class="btn-admin-primary">Create Contract →</button>
+    </form>
+  </div>
+</th:block>
+
+<th:block th:fragment="admin-content">
+
+  <!-- Status header -->
+  <div class="admin-card" style="margin-bottom:1.25rem;">
+    <div class="admin-card-body" style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; color:#9ca3af; margin-bottom:4px;">Quote #</div>
+        <div style="font-family:'Cormorant Garamond',serif; font-size:1.75rem; font-weight:600; color:#0B1628;" th:text="${quote.quoteNumber}">LLR-Q-0001</div>
+      </div>
+      <div>
+        <span style="display:inline-block; font-family:'Montserrat',sans-serif; font-size:0.62rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; padding:5px 14px; border-radius:20px;"
+              th:text="${quote.statusLabel}"
+              th:style="${quote.status.name()=='ACCEPTED'} ? 'background:#D1FAE5;color:#065F46;'
+                       :(${quote.status.name()=='SENT' or quote.status.name()=='VIEWED'} ? 'background:#DBEAFE;color:#1E40AF;'
+                       :(${quote.status.name()=='EXPIRED'} ? 'background:#FEE2E2;color:#991B1B;'
+                       : 'background:#F3F4F6;color:#374151;'))">Status</span>
+      </div>
+      <div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#9ca3af; margin-bottom:4px;">Valid Until</div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.85rem; color:#0B1628;"
+             th:class="${quote.expired} ? 'text-red' : ''"
+             th:style="${quote.expired} ? 'color:#ef4444;font-weight:600;' : ''"
+             th:text="${#temporals.format(quote.validUntil,'MMMM d, yyyy')} + (${quote.expired} ? ' — EXPIRED' : '')">Date</div>
+      </div>
+      <div style="margin-left:auto; text-align:right;">
+        <div style="font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:600; color:#0B1628;"
+             th:text="'$'+${#numbers.formatDecimal(quote.totalAmount,1,2)}">$0.00</div>
+        <div style="font-family:'Montserrat',sans-serif; font-size:0.58rem; color:#9ca3af; text-transform:uppercase; letter-spacing:0.1em;">Total</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 280px; gap:1.25rem; align-items:start;">
+
+    <!-- Left: line items -->
+    <div style="display:flex; flex-direction:column; gap:1.25rem;">
+      <!-- Customer + event -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title">Customer &amp; Event</span></div>
+        <div class="admin-card-body">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-family:'Montserrat',sans-serif;">
+            <div>
+              <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:3px;">Customer</div>
+              <div style="font-size:0.82rem; color:#0B1628; font-weight:600;" th:text="${quote.customerName}">Name</div>
+            </div>
+            <div>
+              <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:3px;">Event Date</div>
+              <div style="font-size:0.82rem; color:#0B1628; font-weight:600;" th:text="${#temporals.format(quote.eventDate,'MMMM d, yyyy')}">Date</div>
+            </div>
+            <div>
+              <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:3px;">Booking #</div>
+              <div style="font-size:0.82rem; color:#374151;">
+                <a th:href="@{/admin/bookings/{id}(id=${quote.bookingId})}"
+                   th:text="${quote.bookingNumber}"
+                   style="color:#C9A84C; text-decoration:none;">LLR-0001</a>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.58rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:#C9A84C; margin-bottom:3px;">Event Type</div>
+              <div style="font-size:0.82rem; color:#374151;" th:text="${quote.eventType}">Type</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line items -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title">Rental Items</span></div>
+        <table class="admin-table">
+          <thead><tr>
+            <th>Item</th><th style="text-align:center;">Qty</th>
+            <th style="text-align:right;">Unit</th><th style="text-align:right;">Total</th>
+          </tr></thead>
+          <tbody>
+            <tr th:each="item : ${quote.lineItems}">
+              <td style="font-weight:500; color:#0B1628;" th:text="${item.itemName}">Item</td>
+              <td style="text-align:center;" th:text="${item.quantity}">1</td>
+              <td style="text-align:right;" th:text="'$'+${#numbers.formatDecimal(item.unitPrice,1,2)}">$0</td>
+              <td style="text-align:right; font-weight:600;" th:text="'$'+${#numbers.formatDecimal(item.lineTotal,1,2)}">$0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right: pricing summary + timestamps -->
+    <div style="display:flex; flex-direction:column; gap:1.25rem;">
+
+      <!-- Pricing -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title">Pricing</span></div>
+        <div class="admin-card-body" style="font-family:'Montserrat',sans-serif;">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:#6b7280; padding:4px 0;">
+            <span>Subtotal</span><span th:text="'$'+${#numbers.formatDecimal(quote.subtotal,1,2)}">$0</span>
+          </div>
+          <div th:if="${quote.setupFee?.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+               style="display:flex; justify-content:space-between; font-size:0.78rem; color:#6b7280; padding:4px 0;">
+            <span>Setup Fee</span><span th:text="'$'+${#numbers.formatDecimal(quote.setupFee,1,2)}">$0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:#6b7280; padding:4px 0;">
+            <span>Tax (8.25%)</span><span th:text="'$'+${#numbers.formatDecimal(quote.taxAmount,1,2)}">$0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:700; color:#0B1628; padding:8px 0; border-top:1px solid rgba(201,168,76,0.15); margin-top:4px;">
+            <span>Total</span><span th:text="'$'+${#numbers.formatDecimal(quote.totalAmount,1,2)}">$0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; padding:8px 10px; background:#F5E6B8; color:#7A5C1E; border-radius:1px; margin-top:4px;">
+            <span>Deposit (30%)</span>
+            <span style="font-weight:700;" th:text="'$'+${#numbers.formatDecimal(quote.depositAmount,1,2)}">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timestamps -->
+      <div class="admin-card">
+        <div class="admin-card-header"><span class="admin-card-title">Activity</span></div>
+        <div class="admin-card-body" style="font-family:'Montserrat',sans-serif; font-size:0.72rem; display:flex; flex-direction:column; gap:10px;">
+          <div th:if="${quote.sentAt}">
+            <div style="color:#C9A84C; font-size:0.58rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:2px;">Sent</div>
+            <div style="color:#374151;" th:text="${#temporals.format(quote.sentAt,'MMM d, yyyy h:mm a')}">Date</div>
+          </div>
+          <div th:if="${quote.viewedAt}">
+            <div style="color:#C9A84C; font-size:0.58rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:2px;">Viewed</div>
+            <div style="color:#374151;" th:text="${#temporals.format(quote.viewedAt,'MMM d, yyyy h:mm a')}">Date</div>
+          </div>
+          <div th:if="${quote.acceptedAt}">
+            <div style="color:#10b981; font-size:0.58rem; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; margin-bottom:2px;">Accepted</div>
+            <div style="color:#374151;" th:text="${#temporals.format(quote.acceptedAt,'MMM d, yyyy h:mm a')}">Date</div>
+          </div>
+          <div th:unless="${quote.sentAt != null or quote.viewedAt != null or quote.acceptedAt != null}"
+               style="color:#9ca3af;">No activity yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</th:block>
+
+<th:block th:fragment="admin-scripts"></th:block>
+</body>
+</html>

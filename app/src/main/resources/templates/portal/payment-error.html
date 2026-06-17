@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Payment Error</title></head>
+<body>
+<th:block th:fragment="main-content">
+<main>
+  <div class="max-w-xl mx-auto px-4 py-20 text-center">
+    <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center" style="background:#fee2e2;">
+      <svg class="w-10 h-10" fill="none" stroke="#ef4444" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+      </svg>
+    </div>
+    <h1 class="font-serif text-3xl font-light mb-3" style="color:#0B1628;">Payment Error</h1>
+    <p class="text-sm mb-2" style="color:#9ca3af; font-family:'Montserrat',sans-serif;"
+       th:text="${errorMessage ?: 'An error occurred while processing your payment.'}">Error</p>
+    <p class="text-sm mb-8" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">
+      No charge was made. Please try again or contact us.
+    </p>
+    <div style="display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center;">
+      <button onclick="history.back()" class="btn-gold px-8 py-3 rounded-sm text-xs">Try Again</button>
+      <a th:href="@{/portal/dashboard}" class="btn-navy px-8 py-3 rounded-sm text-xs">My Bookings</a>
+    </div>
+  </div>
+</main>
+</th:block>
+<th:block th:fragment="page-scripts"></th:block>
+</body>
+</html>

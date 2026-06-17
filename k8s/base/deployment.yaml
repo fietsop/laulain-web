@@ -1,0 +1,147 @@
+# ============================================================
+#  Laulain Luxe Rentals — Kubernetes Deployment
+#  Base manifest (overlays in /overlays/dev and /overlays/prod)
+# ============================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laulain-app
+  namespace: laulain
+  labels:
+    app: laulain-app
+    version: "1.0.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: laulain-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0       # Zero-downtime deployments
+  template:
+    metadata:
+      labels:
+        app: laulain-app
+    spec:
+      serviceAccountName: laulain-sa    # IRSA service account (grants AWS permissions)
+      terminationGracePeriodSeconds: 60
+
+      containers:
+        - name: laulain-app
+          image: <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/laulain-luxe-rentals:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http
+
+          # ---- Environment from ConfigMap ----
+          envFrom:
+            - configMapRef:
+                name: laulain-config
+
+          # ---- Secrets from K8s Secrets ----
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: laulain-db-secret
+                  key: password
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: laulain-stripe-secret
+                  key: secret-key
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: laulain-stripe-secret
+                  key: webhook-secret
+            - name: COGNITO_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: laulain-cognito-secret
+                  key: client-secret
+            - name: DOCUSIGN_INTEGRATION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: laulain-docusign-secret
+                  key: integration-key
+
+          # ---- DocuSign private key (mounted as file) ----
+          volumeMounts:
+            - name: docusign-key
+              mountPath: /app/secrets
+              readOnly: true
+
+          # ---- Resource Limits ----
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+
+          # ---- Health Probes ----
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+
+          startupProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            failureThreshold: 12
+            periodSeconds: 10
+
+      volumes:
+        - name: docusign-key
+          secret:
+            secretName: laulain-docusign-secret
+            items:
+              - key: private-key
+                path: docusign-private.key
+
+---
+# ============================================================
+#  Horizontal Pod Autoscaler
+# ============================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: laulain-app-hpa
+  namespace: laulain
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: laulain-app
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

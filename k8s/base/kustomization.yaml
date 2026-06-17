@@ -1,0 +1,16 @@
+# ============================================================
+#  Laulain Luxe Rentals — K8s Base Kustomization
+# ============================================================
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: laulain
+
+resources:
+  - service-ingress-configmap.yaml
+  - deployment.yaml
+
+commonLabels:
+  app.kubernetes.io/name: laulain-luxe-rentals
+  app.kubernetes.io/component: backend
+  app.kubernetes.io/managed-by: kustomize

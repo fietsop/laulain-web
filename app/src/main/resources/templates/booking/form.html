@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/base :: html(content=~{::main-content}, scripts=~{::page-scripts}, headExtra=~{})}">
+<head><title>Book Now</title></head>
+<body>
+
+<th:block th:fragment="main-content">
+<main>
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0B1628,#1E3260); padding:2.5rem 0;">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <p class="text-xs tracking-widest uppercase mb-2" style="color:#C9A84C; font-family:'Montserrat',sans-serif; letter-spacing:0.2em;">Step 1 of 1</p>
+      <h1 class="font-serif text-3xl md:text-4xl font-light text-white">Request a Booking</h1>
+      <div class="mt-3 mx-auto w-12 h-px" style="background:#C9A84C;"></div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-4 py-10">
+
+    <!-- Availability error -->
+    <div th:if="${availabilityError}"
+         class="mb-6 p-4 rounded-sm border-l-4 border-red-500 bg-red-50">
+      <p class="text-sm font-semibold text-red-700 mb-1" style="font-family:'Montserrat',sans-serif;">Availability Conflict</p>
+      <p class="text-sm text-red-600 whitespace-pre-line" style="font-family:'Montserrat',sans-serif;"
+         th:text="${availabilityError}"></p>
+    </div>
+
+    <form th:action="@{/booking}" th:object="${form}" method="post" id="bookingForm">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+      <div style="display:grid; grid-template-columns:1fr 340px; gap:2rem;">
+
+        <!-- ===== LEFT: FORM FIELDS ===== -->
+        <div style="min-width:0;">
+
+          <!-- SECTION 1: Your Info -->
+          <div class="bg-white rounded-sm border shadow-sm p-6" style="border-color:#e8d9b8;">
+            <h2 class="font-serif text-xl mb-5" style="color:#0B1628;">Your Information</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">First Name *</label>
+                <input type="text" th:field="*{firstName}" placeholder="Alain"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none focus:ring-1"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                <p th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Last Name *</label>
+                <input type="text" th:field="*{lastName}" placeholder="Smith"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none focus:ring-1"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                <p th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Email *</label>
+                <input type="email" th:field="*{email}" placeholder="your@email.com"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Phone *</label>
+                <input type="tel" th:field="*{phone}" placeholder="(214) 555-0100"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                <p th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: Event Details -->
+          <div class="bg-white rounded-sm border shadow-sm p-6" style="border-color:#e8d9b8;">
+            <h2 class="font-serif text-xl mb-5" style="color:#0B1628;">Event Details</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Event Date *</label>
+                <input type="date" th:field="*{eventDate}" id="eventDateInput"
+                       th:value="${preSelectedDate}"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db;"
+                       onchange="onDateChange()"/>
+                <p th:if="${#fields.hasErrors('eventDate')}" th:errors="*{eventDate}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Event Type *</label>
+                <select th:field="*{eventType}" class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none" style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;">
+                  <option value="">— Select —</option>
+                  <option value="Wedding">Wedding</option>
+                  <option value="Corporate Event">Corporate Event</option>
+                  <option value="Birthday Party">Birthday Party</option>
+                  <option value="Baby Shower">Baby Shower</option>
+                  <option value="Bridal Shower">Bridal Shower</option>
+                  <option value="Graduation Party">Graduation Party</option>
+                  <option value="Church Event">Church Event</option>
+                  <option value="Quinceañera">Quinceañera</option>
+                  <option value="Other">Other</option>
+                </select>
+                <p th:if="${#fields.hasErrors('eventType')}" th:errors="*{eventType}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Start Time</label>
+                <input type="time" th:field="*{eventStartTime}" class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none" style="border-color:#d1d5db;"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">End Time</label>
+                <input type="time" th:field="*{eventEndTime}" class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none" style="border-color:#d1d5db;"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Venue Name</label>
+                <input type="text" th:field="*{eventVenue}" placeholder="Dallas Marriott, etc."
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Guest Count</label>
+                <input type="number" th:field="*{guestCount}" min="1" placeholder="50"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: Delivery Address -->
+          <div class="bg-white rounded-sm border shadow-sm p-6" style="border-color:#e8d9b8;">
+            <h2 class="font-serif text-xl mb-5" style="color:#0B1628;">Delivery Address</h2>
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Address Line 1 *</label>
+                <input type="text" th:field="*{deliveryAddressLine1}" placeholder="123 Main St"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                <p th:if="${#fields.hasErrors('deliveryAddressLine1')}" th:errors="*{deliveryAddressLine1}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Address Line 2</label>
+                <input type="text" th:field="*{deliveryAddressLine2}" placeholder="Suite 100, Hall B…"
+                       class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                       style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 80px 80px; gap:0.75rem;">
+                <div >
+                  <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">City *</label>
+                  <input type="text" th:field="*{deliveryCity}" placeholder="Fate"
+                         class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                         style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                  <p th:if="${#fields.hasErrors('deliveryCity')}" th:errors="*{deliveryCity}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">State *</label>
+                  <input type="text" th:field="*{deliveryState}" value="TX"
+                         class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                         style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">ZIP *</label>
+                  <input type="text" th:field="*{deliveryZip}" placeholder="75087"
+                         class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                         style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"/>
+                  <p th:if="${#fields.hasErrors('deliveryZip')}" th:errors="*{deliveryZip}" class="text-xs mt-1" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+                </div>
+              </div>
+              <label class="flex items-center gap-3 cursor-pointer mt-2">
+                <input type="checkbox" th:field="*{requiresSetup}" style="accent-color:#C9A84C; width:1rem; height:1rem;"
+                       onchange="refreshPricing()"/>
+                <div>
+                  <span class="text-sm font-medium" style="color:#0B1628; font-family:'Montserrat',sans-serif;">I need setup/breakdown assistance (+15%)</span>
+                  <p class="text-xs" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">Our team will set up and break down all equipment at your venue</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- SECTION 4: Items -->
+          <div class="bg-white rounded-sm border shadow-sm p-6" style="border-color:#e8d9b8;">
+            <div class="flex items-center justify-between mb-5">
+              <h2 class="font-serif text-xl" style="color:#0B1628;">Select Items</h2>
+              <button type="button" onclick="addItemRow()"
+                      class="btn-gold px-4 py-2 rounded-sm text-xs">+ Add Item</button>
+            </div>
+
+            <p th:if="${#fields.hasErrors('items')}" th:errors="*{items}" class="text-xs mb-3" style="color:#ef4444; font-family:'Montserrat',sans-serif;"></p>
+
+            <div id="itemsContainer" class="space-y-3">
+              <!-- Dynamic item rows added by JS -->
+            </div>
+
+            <!-- Availability status -->
+            <div id="availabilityStatus" class="hidden mt-3 p-3 rounded-sm text-xs" style="font-family:'Montserrat',sans-serif;"></div>
+          </div>
+
+          <!-- Notes -->
+          <div class="bg-white rounded-sm border shadow-sm p-6" style="border-color:#e8d9b8;">
+            <h2 class="font-serif text-xl mb-4" style="color:#0B1628;">Special Requests</h2>
+            <textarea th:field="*{customerNotes}" rows="3"
+                      placeholder="Any special requirements, color preferences, or notes for your event…"
+                      class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none resize-none"
+                      style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;"></textarea>
+          </div>
+
+          <button type="submit" class="btn-gold w-full py-4 rounded-sm text-xs tracking-widest">
+            Submit Booking Request →
+          </button>
+          <p class="text-xs text-center mt-2" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">
+            No payment required now. We'll send you a quote within 24 hours.
+          </p>
+        </div>
+
+        <!-- ===== RIGHT: LIVE PRICING SUMMARY ===== -->
+        <div style="">
+          <div class="sticky top-20">
+            <div class="bg-white rounded-sm border shadow-sm p-5" style="border-color:#e8d9b8;">
+              <h3 class="font-serif text-lg mb-4" style="color:#0B1628;">Estimate</h3>
+
+              <div id="pricingEmpty" class="text-center py-6">
+                <div style="color:#C9A84C; font-size:2rem;">✦</div>
+                <p class="text-xs mt-2" style="color:#9ca3af; font-family:'Montserrat',sans-serif;">Add items to see pricing</p>
+              </div>
+
+              <div id="pricingDetails" class="hidden">
+                <div id="lineItemsList" class="space-y-2 mb-4 text-sm" style="font-family:'Montserrat',sans-serif;"></div>
+                <div class="border-t pt-3 space-y-1" style="border-color:#e8d9b8;">
+                  <div class="flex justify-between text-xs" style="color:#6b7280; font-family:'Montserrat',sans-serif;">
+                    <span>Subtotal</span>
+                    <span id="priceSubtotal">$0.00</span>
+                  </div>
+                  <div class="flex justify-between text-xs" id="setupFeeRow" style="color:#6b7280; font-family:'Montserrat',sans-serif; display:none!important;">
+                    <span>Setup Fee</span>
+                    <span id="priceSetupFee">$0.00</span>
+                  </div>
+                  <div class="flex justify-between text-xs" style="color:#6b7280; font-family:'Montserrat',sans-serif;">
+                    <span>Tax (8.25%)</span>
+                    <span id="priceTax">$0.00</span>
+                  </div>
+                  <div class="flex justify-between text-sm font-semibold border-t pt-2 mt-2" style="color:#0B1628; border-color:#e8d9b8; font-family:'Montserrat',sans-serif;">
+                    <span>Total</span>
+                    <span id="priceTotal">$0.00</span>
+                  </div>
+                  <div class="flex justify-between text-xs mt-2 p-2 rounded-sm" style="background:#F5E6B8; font-family:'Montserrat',sans-serif; color:#A07830;">
+                    <span>Deposit (30%)</span>
+                    <span id="priceDeposit" class="font-semibold">$0.00</span>
+                  </div>
+                  <div class="flex justify-between text-xs" style="color:#6b7280; font-family:'Montserrat',sans-serif;">
+                    <span>Balance Due at Event</span>
+                    <span id="priceBalance">$0.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Deposit notice -->
+              <div class="mt-4 p-3 rounded-sm text-xs leading-relaxed" style="background:#F5E6B8; color:#A07830; font-family:'Montserrat',sans-serif;">
+                ✦ A <strong>30% deposit</strong> is required to confirm your booking. We will send you a secure payment link with your quote.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+</th:block>
+
+<th:block th:fragment="page-scripts">
+<script th:inline="javascript">
+  const ALL_ITEMS = /*[[${allItems}]]*/ [];
+  const PRE_ITEM = /*[[${preSelectedItemId}]]*/ null;
+  const CSRF = document.cookie.match(/XSRF-TOKEN=([^;]+)/)?.[1] || '';
+  let itemRowCount = 0;
+
+  function addItemRow(itemId = '', qty = 1) {
+    itemRowCount++;
+    const idx = itemRowCount - 1;
+    const container = document.getElementById('itemsContainer');
+    const div = document.createElement('div');
+    div.id = `itemRow_${idx}`;
+    div.className = 'flex gap-3 items-start p-3 rounded-sm border';
+    div.style.cssText = 'border-color:#e8d9b8; background:#faf9f5;';
+
+    const options = ALL_ITEMS.map(i =>
+      `<option value="${i.id}" ${i.id === itemId ? 'selected' : ''}>
+        ${i.name} — $${i.pricePerDay}/day
+       </option>`).join('');
+
+    div.innerHTML = `
+      <div class="flex-1">
+        <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Item</label>
+        <select name="items[${idx}].itemId" onchange="refreshPricing(); checkItemAvailability(${idx})"
+                class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none"
+                style="border-color:#d1d5db; font-family:'Montserrat',sans-serif;">
+          <option value="">— Select an item —</option>
+          ${options}
+        </select>
+        <div id="avail_${idx}" class="text-xs mt-1 hidden" style="font-family:'Montserrat',sans-serif;"></div>
+      </div>
+      <div style="width:80px;">
+        <label class="block text-xs font-semibold tracking-widest uppercase mb-1" style="color:#0B1628; font-family:'Montserrat',sans-serif;">Qty</label>
+        <input type="number" name="items[${idx}].quantity" value="${qty}" min="1"
+               class="w-full border px-3 py-2 text-sm rounded-sm focus:outline-none text-center"
+               style="border-color:#d1d5db;"
+               onchange="refreshPricing()"/>
+      </div>
+      <button type="button" onclick="removeItemRow(${idx})"
+              class="mt-6 text-gray-400 hover:text-red-500 transition-colors" title="Remove">
+        ✕
+      </button>
+    `;
+    container.appendChild(div);
+    refreshPricing();
+  }
+
+  function removeItemRow(idx) {
+    document.getElementById(`itemRow_${idx}`)?.remove();
+    refreshPricing();
+  }
+
+  async function checkItemAvailability(idx) {
+    const row = document.getElementById(`itemRow_${idx}`);
+    if (!row) return;
+    const itemId = row.querySelector('select').value;
+    const eventDate = document.getElementById('eventDateInput').value;
+    const statusEl = document.getElementById(`avail_${idx}`);
+
+    if (!itemId || !eventDate) { statusEl.classList.add('hidden'); return; }
+
+    statusEl.classList.remove('hidden');
+    statusEl.textContent = 'Checking…';
+    statusEl.style.color = '#9ca3af';
+
+    try {
+      const res = await fetch(`/booking/check-availability?itemId=${itemId}&eventDate=${eventDate}`);
+      const data = await res.json();
+      if (data.available) {
+        statusEl.textContent = `✓ Available (${data.availableQuantity} units)`;
+        statusEl.style.color = '#059669';
+      } else {
+        statusEl.textContent = `✗ ${data.message}`;
+        statusEl.style.color = '#dc2626';
+      }
+    } catch (e) {
+      statusEl.textContent = 'Could not verify availability';
+      statusEl.style.color = '#9ca3af';
+    }
+  }
+
+  function onDateChange() {
+    // Re-check availability for all selected items
+    const rows = document.querySelectorAll('[id^="itemRow_"]');
+    rows.forEach(row => {
+      const idx = row.id.replace('itemRow_', '');
+      checkItemAvailability(idx);
+    });
+  }
+
+  async function refreshPricing() {
+    const rows = document.querySelectorAll('[id^="itemRow_"]');
+    const items = [];
+
+    rows.forEach(row => {
+      const itemId = row.querySelector('select')?.value;
+      const qty = parseInt(row.querySelector('input[type="number"]')?.value || '1');
+      if (itemId) items.push({ itemId, quantity: qty });
+    });
+
+    if (items.length === 0) {
+      document.getElementById('pricingEmpty').classList.remove('hidden');
+      document.getElementById('pricingDetails').classList.add('hidden');
+      return;
+    }
+
+    const requiresSetup = document.querySelector('input[name="requiresSetup"]')?.checked || false;
+
+    try {
+      const res = await fetch(`/booking/api/pricing-estimate?rentalDays=1&requiresSetup=${requiresSetup}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': CSRF },
+        body: JSON.stringify(items)
+      });
+      const data = await res.json();
+
+      // Update UI
+      document.getElementById('pricingEmpty').classList.add('hidden');
+      document.getElementById('pricingDetails').classList.remove('hidden');
+
+      const fmt = n => '$' + parseFloat(n).toFixed(2);
+      document.getElementById('priceSubtotal').textContent = fmt(data.subtotal);
+      document.getElementById('priceTax').textContent = fmt(data.taxAmount);
+      document.getElementById('priceTotal').textContent = fmt(data.totalAmount);
+      document.getElementById('priceDeposit').textContent = fmt(data.depositAmount);
+      document.getElementById('priceBalance').textContent = fmt(data.balanceDue);
+
+      // Setup fee row
+      const setupRow = document.getElementById('setupFeeRow');
+      if (data.setupFee > 0) {
+        setupRow.style.removeProperty('display');
+        document.getElementById('priceSetupFee').textContent = fmt(data.setupFee);
+      } else {
+        setupRow.style.cssText = 'display:none!important;';
+      }
+
+      // Line items
+      const list = document.getElementById('lineItemsList');
+      list.innerHTML = data.lineItems.map(li => `
+        <div class="flex justify-between">
+          <span style="color:#374151;">${li.itemName} × ${li.quantity}</span>
+          <span style="color:#0B1628; font-weight:600;">$${parseFloat(li.lineTotal).toFixed(2)}</span>
+        </div>`).join('');
+    } catch (e) {
+      console.error('Pricing error:', e);
+    }
+  }
+
+  // Initialize — add first row, pre-select if coming from catalog
+  document.addEventListener('DOMContentLoaded', () => {
+    addItemRow(PRE_ITEM || '');
+  });
+</script>
+</th:block>
+</body>
+</html>
