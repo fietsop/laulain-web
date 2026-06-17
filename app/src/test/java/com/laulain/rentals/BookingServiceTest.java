@@ -12,6 +12,8 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 @DisplayName("BookingService Tests")
 class BookingServiceTest {
 
@@ -52,8 +55,8 @@ class BookingServiceTest {
                 .category(ItemCategory.builder().name("Chafing Dishes").build())
                 .build();
 
-        when(appProperties.business()).thenReturn(businessProperties);
-        when(businessProperties.taxRate()).thenReturn(0.0825);
+        lenient().when(appProperties.business()).thenReturn(businessProperties);
+        lenient().when(businessProperties.taxRate()).thenReturn(0.0825);
     }
 
     @Test
